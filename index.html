@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b2f57">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="柯南档案">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 30'%3E%3Cpath d='M21 15L3 3.5Q1 2.5 1 5V25Q1 27.5 3 26.5Z' fill='%23d42a3c'/%3E%3Cpath d='M25 15L43 3.5Q45 2.5 45 5V25Q45 27.5 43 26.5Z' fill='%23d42a3c'/%3E%3Crect x='18' y='9.5' width='10' height='11' rx='3' fill='%23b81f31'/%3E%3C/svg%3E">
+<title>柯南观看档案</title>
+<style>
+/* Layout: 侦探事务所的卷宗柜 — 藏青西装色的"下一案件"主卡（放大镜进度表），下面是一份份编号案件档案 */
+:root{
+  --bg:#edf1f7; --paper:#ffffff; --paper2:#f5f7fb; --ink:#152240; --muted:#5c6886; --line:#d7deeb;
+  --navy:#1b2f57; --navy2:#26407a; --onnavy:#f3f6fc; --onnavy-muted:#a9b7d6; --onnavy-line:rgba(255,255,255,.16);
+  --red:#d42a3c; --red-ink:#b81f31; --red-soft:#fce6e9; --gold:#e3a234; --ok:#1d9a68;
+  --hl:#e3ebfb; --flash:#ffe9a8;
+  --a-bg:#1c1e26; --a-fg:#ffffff; --b-bg:#dde6f8; --b-fg:#1d3a78; --c-bg:#fbecd0; --c-fg:#7a4f05;
+  --shadow:0 1px 2px rgba(21,34,64,.06),0 10px 30px rgba(21,34,64,.10);
+  --f-display:"Songti SC","STSong","Noto Serif SC","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif;
+  --f-mono:"Courier New",Courier,ui-monospace,Menlo,monospace;
+  --f-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a1120; --paper:#121b2e; --paper2:#172238; --ink:#e6ebf5; --muted:#8e9ab5; --line:#24314b;
+    --navy:#14254a; --navy2:#1d3466; --onnavy:#f1f4fb; --onnavy-muted:#9fb0d4; --onnavy-line:rgba(255,255,255,.14);
+    --red:#ff4b5c; --red-ink:#ff6b7a; --red-soft:#3a1720; --gold:#f2b84b; --ok:#3fcf94;
+    --hl:#192a4d; --flash:#4a3d12;
+    --a-bg:#e6ebf5; --a-fg:#0a1120; --b-bg:#22396b; --b-fg:#d6e2ff; --c-bg:#4a3812; --c-fg:#ffd98a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a1120; --paper:#121b2e; --paper2:#172238; --ink:#e6ebf5; --muted:#8e9ab5; --line:#24314b;
+  --navy:#14254a; --navy2:#1d3466; --onnavy:#f1f4fb; --onnavy-muted:#9fb0d4; --onnavy-line:rgba(255,255,255,.14);
+  --red:#ff4b5c; --red-ink:#ff6b7a; --red-soft:#3a1720; --gold:#f2b84b; --ok:#3fcf94;
+  --hl:#192a4d; --flash:#4a3d12;
+  --a-bg:#e6ebf5; --a-fg:#0a1120; --b-bg:#22396b; --b-fg:#d6e2ff; --c-bg:#4a3812; --c-fg:#ffd98a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:900;font-size:22px;letter-spacing:.04em;line-height:1.2}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px;letter-spacing:.02em}
+.sync{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--muted);cursor:default;white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sync[data-s="ok"] i{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 22%,transparent)}
+.sync[data-s="saving"] i,.sync[data-s="loading"] i{background:var(--gold);animation:pulse 1s infinite}
+.sync[data-s="error"]{cursor:pointer;color:var(--red-ink);border-color:var(--red)}
+.sync[data-s="error"] i{background:var(--red)}
+@keyframes pulse{50%{opacity:.3}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:var(--navy);color:var(--onnavy);border-radius:20px;padding:26px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;align-items:center;box-shadow:var(--shadow)}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(600px 300px at 0% 0%,color-mix(in srgb,var(--navy2) 90%,transparent),transparent 70%),
+  repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.025) 22px 23px);pointer-events:none}
+.hero>*{position:relative}
+.gauge{display:flex;flex-direction:column;align-items:center;gap:6px}
+.gauge svg{width:100%;max-width:200px;height:auto;display:block}
+.gauge .cap{font-size:12.5px;color:var(--onnavy-muted);text-align:center;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.next h2{margin:6px 0 8px;font-family:var(--f-display);font-weight:900;font-size:clamp(24px,4.6vw,36px);line-height:1.25;text-wrap:balance;letter-spacing:.02em}
+.next .star-big{color:var(--gold);margin-right:.2em}
+.hmeta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--onnavy-muted);margin-bottom:8px}
+.hmeta b{color:var(--onnavy);font-weight:600}
+.hwhy{margin:0 0 14px;color:var(--onnavy);opacity:.9;font-size:14px;max-width:60ch}
+.heps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.heps .ep{background:rgba(255,255,255,.08);border-color:var(--onnavy-line);color:var(--onnavy)}
+.heps .ep:hover{background:rgba(255,255,255,.16)}
+.hact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:11px 18px;font-weight:700;font-size:15px;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:transform .12s ease,background .15s ease}
+.btn:active{transform:translateY(1px)}
+.btn-play{background:var(--red);color:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 40%,transparent)}
+.btn-play:hover{background:var(--red-ink)}
+.btn-done{background:transparent;border-color:var(--onnavy-line);color:var(--onnavy)}
+.btn-done:hover{background:rgba(255,255,255,.08)}
+.hlast{margin-top:12px;font-size:12.5px;color:var(--onnavy-muted);min-height:1em}
+.hero.finished{grid-template-columns:200px minmax(0,1fr)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 20px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.stat .k{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12.5px;color:var(--muted)}
+.stat .v{font-family:var(--f-mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;line-height:1}
+.stat .v small{font-size:13px;color:var(--muted);font-weight:400}
+.bar{height:5px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar>span{display:block;height:100%;border-radius:9px;background:var(--red);transition:width .4s ease}
+
+/* toolbar */
+.tools{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 0;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.fchip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.fchip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:600;background:var(--paper2)}
+.search{flex:1 1 160px;min-width:0;position:relative}
+.search input{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:11px;padding:8px 12px 8px 34px;font:inherit;font-size:14px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.locate{border:1px solid var(--red);color:var(--red-ink);background:var(--paper);border-radius:11px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.count{width:100%;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:10px}
+.case{position:relative;display:grid;grid-template-columns:64px minmax(0,1fr) 44px;gap:14px;align-items:start;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 14px 14px 10px;transition:background .3s ease}
+.case.current{background:var(--hl);border-color:color-mix(in srgb,var(--navy2) 45%,var(--line))}
+.case.flash{animation:flash 1.4s ease}
+@keyframes flash{0%,40%{background:var(--flash)}}
+.no{display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:2px}
+.no .lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.18em;color:var(--muted)}
+.no .fno{font-family:var(--f-mono);font-weight:700;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.case.done .fno{color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:12.5px;color:var(--muted)}
+.range{font-family:var(--f-mono);font-weight:700;color:var(--ink);font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:700;letter-spacing:.04em}
+.tA{background:var(--a-bg);color:var(--a-fg)} .tB{background:var(--b-bg);color:var(--b-fg)} .tC{background:var(--c-bg);color:var(--c-fg)}
+.st{color:var(--gold);font-weight:700}
+.nowpill{background:var(--navy);color:var(--onnavy);border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:700}
+.ttl{margin:3px 0 2px;font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.35;text-wrap:balance}
+.case.done .ttl{color:var(--muted)}
+.why{margin:0 0 8px;font-size:13px;color:var(--muted)}
+.eps{display:flex;flex-wrap:wrap;gap:5px}
+.ep{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:28px;padding:0 8px;border-radius:8px;border:1px solid var(--line);background:var(--paper2);text-decoration:none;font-family:var(--f-mono);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;transition:background .15s ease,border-color .15s ease}
+.ep:hover{border-color:var(--red);color:var(--red-ink)}
+.ep .pl{font-size:9px;margin-right:4px;opacity:.7}
+.ep.vip::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--paper)}
+.heps .ep.vip::after{border-color:var(--navy)}
+.ep.last{border-color:var(--red);box-shadow:0 0 0 2px color-mix(in srgb,var(--red) 30%,transparent)}
+.chk{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--paper);cursor:pointer;display:grid;place-items:center;color:transparent;transition:all .15s ease}
+.chk:hover{border-color:var(--red);color:color-mix(in srgb,var(--red) 50%,transparent)}
+.chk[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.stamp{position:absolute;right:66px;top:12px;pointer-events:none;font-family:var(--f-display);font-weight:900;font-size:14px;letter-spacing:.2em;padding:3px 6px 3px 9px;border:2.5px double currentColor;border-radius:6px;transform:rotate(-9deg);opacity:.82}
+.case.done .stamp{color:var(--red)}
+.case.current .stamp{color:var(--navy2)}
+:root[data-theme="dark"] .case.current .stamp{color:var(--onnavy-muted)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .case.current .stamp{color:var(--onnavy-muted)}}
+.case.just .stamp{animation:stampin .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stampin{0%{transform:rotate(-20deg) scale(2.2);opacity:0}100%{transform:rotate(-9deg) scale(1);opacity:.82}}
+.empty{text-align:center;padding:40px 16px;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.notice{margin:-6px 0 18px;padding:10px 14px;border-radius:12px;background:var(--paper);border:1px dashed var(--line);font-size:13px;color:var(--muted)}
+
+footer{margin-top:28px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer .lg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+footer .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-right:5px;vertical-align:middle}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px 10px 16px;display:flex;align-items:center;gap:14px;font-size:14px;box-shadow:var(--shadow);transition:all .25s ease;max-width:calc(100% - 32px);z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast button{border:0;background:transparent;color:var(--gold);font-weight:700;cursor:pointer;padding:4px 6px;flex:none}
+
+@media (max-width:720px){
+  .hero{grid-template-columns:1fr;gap:16px;padding:20px 18px}
+  .gauge{flex-direction:row;gap:14px;align-items:center;justify-content:flex-start}
+  .gauge svg{width:110px}
+  .gauge .cap{text-align:left}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .case{grid-template-columns:44px minmax(0,1fr) 40px;gap:10px;padding:12px 10px 12px 6px}
+  .no .fno{font-size:17px}
+  .no .lbl{font-size:9px;letter-spacing:.1em}
+  .chk{width:36px;height:36px}
+  .stamp{top:auto;bottom:12px;right:10px;font-size:12px}
+  .case.done .eps,.case.current .eps{padding-right:72px}
+  .ttl{font-size:16.5px}
+  .brand h1{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="46" height="30" viewBox="0 0 46 30" aria-hidden="true">
+        <path d="M21 15 L3 3.5 Q1 2.5 1 5 L1 25 Q1 27.5 3 26.5 Z" fill="var(--red)"/>
+        <path d="M25 15 L43 3.5 Q45 2.5 45 5 L45 25 Q45 27.5 43 26.5 Z" fill="var(--red)"/>
+        <path d="M7 9 L16 14.5 M7 21 L16 15.5 M39 9 L30 14.5 M39 21 L30 15.5" stroke="var(--red-ink)" stroke-width="1.4" opacity=".5" fill="none"/>
+        <rect x="18" y="9.5" width="10" height="11" rx="3" fill="var(--red-ink)"/>
+      </svg>
+      <div>
+        <h1>柯南观看档案</h1>
+        <p>名侦探柯南（中配）精选 242 篇 · 567 集 · 真相只有一个</p>
+      </div>
+    </div>
+    <button class="sync" id="sync" data-s="loading" type="button"><i></i><span>正在连接云端…</span></button>
+  </header>
+
+  <section class="hero" id="hero" aria-live="polite"></section>
+  <div class="stats" id="stats"></div>
+  <div class="notice" id="notice" hidden></div>
+
+  <div class="tools" id="tools">
+    <div class="seg" role="group" aria-label="观看状态">
+      <button type="button" id="fs-all" data-s="all">全部</button>
+      <button type="button" id="fs-todo" data-s="todo">待看</button>
+      <button type="button" id="fs-done" data-s="done">已看</button>
+    </div>
+    <button type="button" class="fchip" id="fc-A" data-c="A">A 主线</button>
+    <button type="button" class="fchip" id="fc-B" data-c="B">B 人物</button>
+    <button type="button" class="fchip" id="fc-C" data-c="C">C 案件</button>
+    <button type="button" class="fchip" id="fc-S" data-c="S">★ 重点</button>
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      <input id="q" type="search" placeholder="搜标题、集数（如 545）" aria-label="搜索案件">
+    </label>
+    <button type="button" class="locate" id="locate">定位下一篇</button>
+    <div class="count" id="count"></div>
+  </div>
+
+  <main class="list" id="list"></main>
+
+  <footer>
+    <div class="lg">
+      <span><span class="tag tA">主线</span> A＝主线／身份</span>
+      <span><span class="tag tB">人物</span> B＝人物／衔接</span>
+      <span><span class="tag tC">案件</span> C＝精品案件</span>
+      <span><span class="dot"></span>需B站大会员</span>
+    </div>
+    <div>集数均为B站《名侦探柯南（中配）》拆分编号，点集数直接跳到B站对应那一集。名单整理于 2026-10-06，B站链接同日生成。</div>
+    <div>电脑和手机打开同一个网址就会自动同步进度，不用登录。进度存在 textdb.online，并定期备份到 GitHub。</div>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastUndo">撤销</button></div>
+
+<script>
+const D = {"entries":[{"n":1,"a":1,"b":2,"t":"云霄飞车杀人事件／社长千金绑架事件","s":0,"c":"A","jp":"1—2","r":"故事起点与新生活设定"},{"n":2,"a":3,"b":3,"t":"偶像密室杀人事件","s":0,"c":"B","jp":"3","r":"常驻人物与“沉睡的小五郎”的入门"},{"n":3,"a":4,"b":5,"t":"暗号地图事件／新干线大爆破事件","s":0,"c":"B","jp":"4—5","r":"侦探团与道具入门；本案有漫画改编差异"},{"n":4,"a":7,"b":7,"t":"每月一件礼物威胁事件","s":0,"c":"A","jp":"7","r":"早期身份疑云"},{"n":5,"a":8,"b":8,"t":"美术馆杀人事件","s":0,"c":"C","jp":"8","r":"早期气氛型案件"},{"n":6,"a":10,"b":10,"t":"足球选手恐吓事件","s":0,"c":"B","jp":"10","r":"保留早期人物背景"},{"n":7,"a":11,"b":12,"t":"钢琴奏鸣曲《月光》杀人事件","s":1,"c":"C","jp":"11","r":"孤岛、钢琴与连续案件；优先看此原版"},{"n":8,"a":13,"b":13,"t":"步美绑架事件","s":0,"c":"B","jp":"12","r":"侦探团关系与基础设定"},{"n":9,"a":14,"b":14,"t":"奇怪的寻人杀人事件","s":0,"c":"B","jp":"13","r":"早期人物入门；不能替代135集"},{"n":10,"a":19,"b":19,"t":"六月新娘杀人事件","s":0,"c":"B","jp":"18","r":"警方配角与早期经典案"},{"n":11,"a":21,"b":21,"t":"幽灵屋杀人事件","s":0,"c":"C","jp":"20","r":"探险与阴森气氛"},{"n":12,"a":23,"b":24,"t":"豪华客轮连续杀人事件","s":0,"c":"C","jp":"22—23","r":"封闭空间与家族关系"},{"n":13,"a":28,"b":29,"t":"小五郎同学会杀人事件","s":0,"c":"C","jp":"27—28","r":"小五郎的重要表现"},{"n":14,"a":33,"b":33,"t":"咖啡厅杀人事件","s":0,"c":"B","jp":"32","r":"重要家庭人物登场"},{"n":15,"a":35,"b":36,"t":"山庄绷带怪人杀人事件","s":1,"c":"C","jp":"34—35","r":"山庄与强烈悬疑气氛"},{"n":16,"a":40,"b":41,"t":"富豪千金杀人事件","s":0,"c":"C","jp":"39—40","r":"多嫌疑人别墅案"},{"n":17,"a":43,"b":43,"t":"卡拉OK厅杀人事件","s":0,"c":"C","jp":"42","r":"早期动机型案件"},{"n":18,"a":44,"b":44,"t":"江户川柯南绑架事件","s":0,"c":"A","jp":"43","r":"核心家庭关系与身份衔接"},{"n":19,"a":47,"b":47,"t":"雪山山庄杀人事件","s":0,"c":"C","jp":"46","r":"雪山案件"},{"n":20,"a":49,"b":50,"t":"外交官杀人事件","s":1,"c":"A","jp":"48—49","r":"重要搭档与身份线"},{"n":21,"a":51,"b":51,"t":"图书馆杀人事件","s":1,"c":"C","jp":"50","r":"恐怖气氛突出"},{"n":22,"a":53,"b":54,"t":"雾天狗传说杀人事件","s":1,"c":"C","jp":"52","r":"寺院怪谈与不可能现场"},{"n":23,"a":56,"b":56,"t":"电玩公司杀人事件","s":0,"c":"A","jp":"54","r":"组织线索"},{"n":24,"a":59,"b":60,"t":"福尔摩斯迷杀人事件","s":1,"c":"A","jp":"57—58","r":"侦探迷聚会与重要搭档关系"},{"n":25,"a":70,"b":72,"t":"暗夜男爵杀人事件","s":1,"c":"C","jp":"68—70","r":"多人嫌疑与身份谜题"},{"n":26,"a":78,"b":79,"t":"柯南VS怪盗基德","s":0,"c":"B","jp":"76","r":"基德在本篇的入门章"},{"n":27,"a":80,"b":81,"t":"名门连续惨死事件","s":0,"c":"C","jp":"77—78","r":"家族案件与侦探立场"},{"n":28,"a":87,"b":88,"t":"滑雪别墅杀人事件","s":0,"c":"C","jp":"84—85","r":"雪山、旧事与人物动机"},{"n":29,"a":99,"b":102,"t":"走投无路的名侦探！连续两大杀人事件","s":1,"c":"A","jp":"96","r":"长篇推理与身份疑云；特别篇请看完整"},{"n":30,"a":103,"b":103,"t":"离别美酒杀人事件","s":0,"c":"C","jp":"97","r":"小五郎主场；偏重人物与情绪的原创案"},{"n":31,"a":106,"b":107,"t":"初恋情人回忆事件","s":0,"c":"B","jp":"100—101","r":"新一与小兰相关人物剧情"},{"n":32,"a":124,"b":125,"t":"浪花连续杀人事件","s":1,"c":"B","jp":"118","r":"大阪篇代表作，兼顾人物关系"},{"n":33,"a":128,"b":129,"t":"浴室密室事件","s":0,"c":"C","jp":"121—122","r":"日常场景的密室设计与人物动机"},{"n":34,"a":135,"b":135,"t":"黑衣组织十亿元抢劫事件","s":0,"c":"A","jp":"128","r":"136—139的重要前置；不能用14集替代"},{"n":35,"a":136,"b":139,"t":"来自黑衣组织的女子／大学教授杀人事件","s":1,"c":"A","jp":"129","r":"新核心人物与核心设定；特别篇看完整"},{"n":36,"a":140,"b":141,"t":"竞技场无差别胁迫事件","s":0,"c":"B","jp":"130—131","r":"新阶段人物与警方关系"},{"n":37,"a":142,"b":144,"t":"魔术爱好者杀人事件","s":0,"c":"C","jp":"132—134","r":"封闭环境与身份疑云"},{"n":38,"a":146,"b":147,"t":"蓝色古堡探索事件","s":1,"c":"C","jp":"136—137","r":"古堡、失踪与探险"},{"n":39,"a":151,"b":152,"t":"结婚前夜的密室事件","s":0,"c":"C","jp":"141—142","r":"搭档调查与密室"},{"n":40,"a":154,"b":155,"t":"上野出发的北斗星3号","s":0,"c":"C","jp":"144—145","r":"列车密室与小说式谜题，兼有家人互动"},{"n":41,"a":156,"b":157,"t":"本厅刑警恋爱物语","s":0,"c":"B","jp":"146—147","r":"警方人物关系起点"},{"n":42,"a":160,"b":161,"t":"汽车爆炸事件的真相","s":0,"c":"C","jp":"150—151","r":"小五郎相关的原创案，保留人物戏"},{"n":43,"a":163,"b":164,"t":"园子的危险夏日物语","s":0,"c":"B","jp":"153—154","r":"重要人物登场"},{"n":44,"a":166,"b":167,"t":"本厅刑警恋爱物语2","s":0,"c":"B","jp":"156—157","r":"警方关系延续"},{"n":45,"a":172,"b":173,"t":"飞天密室！工藤新一最初的事件","s":0,"c":"C","jp":"162","r":"新一查案往事与飞行密室"},{"n":46,"a":177,"b":179,"t":"鸟取蜘蛛屋之怪","s":1,"c":"C","jp":"166—168","r":"民俗与连续案件"},{"n":47,"a":181,"b":182,"t":"黑暗中的死角","s":0,"c":"B","jp":"170—171","r":"后续重要人物的入门"},{"n":48,"a":185,"b":188,"t":"20年后的杀意／交响乐号连续杀人事件","s":1,"c":"C","jp":"174","r":"长篇游轮悬疑；特别篇请看完整"},{"n":49,"a":190,"b":192,"t":"与黑衣组织的再会","s":1,"c":"A","jp":"176—178","r":"组织篇章"},{"n":50,"a":198,"b":199,"t":"诅咒假面的冷笑","s":1,"c":"C","jp":"184","r":"豪宅、面具与密室；保留原创佳作"},{"n":51,"a":203,"b":208,"t":"危命的复活","s":1,"c":"A","jp":"188—193","r":"完整保留六集，不截断"},{"n":52,"a":214,"b":215,"t":"嫌疑犯毛利小五郎","s":0,"c":"C","jp":"199—200","r":"毛利家庭人物表现"},{"n":53,"a":220,"b":221,"t":"本厅刑警恋爱物语3","s":0,"c":"B","jp":"205—206","r":"警方往事与关系发展"},{"n":54,"a":223,"b":224,"t":"通往迷宫的入口／巨大神像的愤怒","s":0,"c":"C","jp":"208","r":"长篇原创悬疑与宏大场景"},{"n":55,"a":228,"b":229,"t":"蘑菇、山熊与侦探团","s":0,"c":"B","jp":"212—213","r":"核心人物的价值观与关系"},{"n":56,"a":233,"b":234,"t":"目暮尘封的秘密","s":0,"c":"B","jp":"217—218","r":"目暮人物往事；补足常驻警方形象"},{"n":57,"a":235,"b":238,"t":"名侦探齐聚一堂！工藤新一VS怪盗基德","s":1,"c":"A","jp":"219","r":"侦探聚会；同时保留长线背景"},{"n":58,"a":239,"b":240,"t":"满口谎言的委托人","s":0,"c":"B","jp":"220—221","r":"搭档家庭人物与后续衔接"},{"n":59,"a":241,"b":243,"t":"然后人鱼就消失了","s":1,"c":"B","jp":"222—224","r":"民俗悬疑长篇；也有细小长线信息"},{"n":60,"a":245,"b":246,"t":"战斗游戏的陷阱","s":0,"c":"B","jp":"226—227","r":"后续重要人物入门"},{"n":61,"a":249,"b":250,"t":"神秘的乘客","s":1,"c":"A","jp":"230—231","r":"核心悬疑篇章"},{"n":62,"a":257,"b":258,"t":"大阪3K事件","s":0,"c":"B","jp":"238—239","r":"侦探人物立场"},{"n":63,"a":259,"b":260,"t":"新干线护送事件","s":0,"c":"B","jp":"240—241","r":"警方关系与人物衔接"},{"n":64,"a":261,"b":261,"t":"元太的灾难","s":0,"c":"B","jp":"242","r":"日常案件中的零散人物线索"},{"n":65,"a":265,"b":266,"t":"陷入网中的谜案","s":0,"c":"B","jp":"246—247","r":"核心人物关系发展"},{"n":66,"a":268,"b":269,"t":"偶像们的秘密","s":0,"c":"B","jp":"249—250","r":"保留容易被略去的人物线索"},{"n":67,"a":272,"b":273,"t":"本厅刑警恋爱物语4","s":0,"c":"B","jp":"253—254","r":"警方关系延续"},{"n":68,"a":277,"b":278,"t":"来自芝加哥的男子","s":0,"c":"A","jp":"258—259","r":"关键人物入门"},{"n":69,"a":282,"b":285,"t":"大阪双重谜团／浪花剑士与太阁城","s":1,"c":"C","jp":"263","r":"大阪连续谜案与人物互动"},{"n":70,"a":288,"b":290,"t":"情人节的真相","s":0,"c":"B","jp":"266—268","r":"关系发展与背景线索"},{"n":71,"a":291,"b":292,"t":"犯罪的纪念品","s":0,"c":"B","jp":"269—270","r":"保留铺垫，不只选组织大战"},{"n":72,"a":293,"b":294,"t":"急忙掩饰的忽略","s":0,"c":"B","jp":"271—272","r":"人物疑云衔接"},{"n":73,"a":296,"b":297,"t":"幽灵屋的真相","s":0,"c":"C","jp":"274—275","r":"怪谈外观下的调查"},{"n":74,"a":299,"b":300,"t":"英语教师VS西部名侦探","s":0,"c":"B","jp":"277—278","r":"人物试探"},{"n":75,"a":301,"b":302,"t":"迷宫的阴暗","s":0,"c":"B","jp":"279—280","r":"背景线索"},{"n":76,"a":306,"b":307,"t":"中华街雨中的似曾相识","s":1,"c":"B","jp":"284—285","r":"接续纽约篇"},{"n":77,"a":308,"b":310,"t":"工藤新一纽约事件","s":1,"c":"A","jp":"286—288","r":"后续回收的重要往事"},{"n":78,"a":311,"b":312,"t":"迷失森林的光彦","s":0,"c":"B","jp":"289—290","r":"保留零散人物线索"},{"n":79,"a":313,"b":315,"t":"孤岛的公主与龙宫城","s":0,"c":"C","jp":"291—293","r":"孤岛长篇"},{"n":80,"a":323,"b":324,"t":"恶意与圣者的行进","s":0,"c":"B","jp":"301—302","r":"326—329的前置，先看本案"},{"n":81,"a":326,"b":329,"t":"震动的警视厅／1200万人质","s":1,"c":"B","jp":"304","r":"倒计时悬疑与警方人物戏"},{"n":82,"a":332,"b":333,"t":"遗留的无声证言","s":0,"c":"B","jp":"307—308","r":"334—336的直接前置"},{"n":83,"a":334,"b":336,"t":"与黑衣组织的接触","s":1,"c":"A","jp":"309—311","r":"组织篇章"},{"n":84,"a":337,"b":338,"t":"夕阳染红的女儿节人偶","s":0,"c":"B","jp":"312—313","r":"保留上一组织篇章的后续信息"},{"n":85,"a":348,"b":349,"t":"服部平次一筹莫展","s":0,"c":"C","jp":"323—324","r":"接续长篇调查"},{"n":86,"a":350,"b":352,"t":"火焰中的红马","s":1,"c":"C","jp":"325—327","r":"系列纵火与推理"},{"n":87,"a":354,"b":355,"t":"金钱买不到的友情","s":0,"c":"B","jp":"329—330","r":"核心人物关系发展"},{"n":88,"a":358,"b":359,"t":"相似的公主","s":0,"c":"C","jp":"333—334","r":"家庭人物与推理"},{"n":89,"a":360,"b":361,"t":"东都显影所的秘密","s":0,"c":"B","jp":"335—336","r":"人物与行动线索"},{"n":90,"a":363,"b":364,"t":"四辆保时捷","s":0,"c":"B","jp":"338—339","r":"关键篇章前置"},{"n":91,"a":365,"b":366,"t":"厕所里隐藏的秘密","s":0,"c":"B","jp":"340—341","r":"背景线索"},{"n":92,"a":369,"b":370,"t":"便利店的陷阱","s":0,"c":"B","jp":"343—344","r":"371—375的重要前置"},{"n":93,"a":371,"b":375,"t":"与黑衣组织直面对决／满月之夜的双重谜案","s":1,"c":"A","jp":"345","r":"核心长篇高潮；务必在前置之后看"},{"n":94,"a":376,"b":377,"t":"寻找屁股上的印记","s":0,"c":"B","jp":"346—347","r":"主线高潮后的选择与关系延续"},{"n":95,"a":380,"b":381,"t":"被遗忘的手机","s":0,"c":"B","jp":"350—351","r":"波洛咖啡店人物与后续关系的补充"},{"n":96,"a":386,"b":387,"t":"怪盗基德的惊异空中步行","s":0,"c":"B","jp":"356","r":"保留少量高辨识度基德篇"},{"n":97,"a":389,"b":390,"t":"本厅刑警恋爱物语5","s":0,"c":"B","jp":"358—359","r":"警方关系延续"},{"n":98,"a":392,"b":393,"t":"帝丹高中学校怪谈","s":0,"c":"B","jp":"361—362","r":"前一阶段人物收束"},{"n":99,"a":412,"b":413,"t":"谁的推理秀","s":0,"c":"B","jp":"381—382","r":"平次案件，接续下一特别篇"},{"n":100,"a":414,"b":417,"t":"甲子园的奇迹！绝不能输给看不见的恶魔","s":1,"c":"C","jp":"383","r":"长篇事件与搭档表现"},{"n":101,"a":419,"b":421,"t":"斯特拉迪瓦里小提琴的不和谐音","s":1,"c":"B","jp":"385—387","r":"音乐、家族谜案与关键长线线索"},{"n":102,"a":424,"b":425,"t":"本厅刑警恋爱物语6","s":0,"c":"B","jp":"390—391","r":"警方关系延续"},{"n":103,"a":428,"b":430,"t":"奇异屋宇大冒险","s":0,"c":"B","jp":"394—396","r":"机关宅邸与探险"},{"n":104,"a":432,"b":434,"t":"奇妙一家的委托／心存疑惑的小兰","s":0,"c":"A","jp":"398—400","r":"委托案与身份疑云后续连续保留"},{"n":105,"a":440,"b":442,"t":"柯南平次的推理魔术","s":0,"c":"C","jp":"406—408","r":"魔术与推理"},{"n":106,"a":449,"b":451,"t":"佛灭前出现的恶灵","s":0,"c":"C","jp":"415—417","r":"宅邸怪谈与连续调查"},{"n":107,"a":455,"b":456,"t":"银杏色的初恋","s":0,"c":"B","jp":"421—422","r":"博士的重要人物篇"},{"n":108,"a":459,"b":463,"t":"黑色冲击！组织之手逼近的瞬间","s":1,"c":"A","jp":"425","r":"核心组织长篇；特别篇看完整"},{"n":109,"a":467,"b":468,"t":"无法回到从前的二人","s":0,"c":"B","jp":"429—430","r":"新阶段人物入门"},{"n":110,"a":469,"b":470,"t":"本厅刑警恋爱物语7","s":0,"c":"B","jp":"431—432","r":"警方关系延续"},{"n":111,"a":484,"b":485,"t":"被封印的欧式窗","s":0,"c":"B","jp":"446—447","r":"保留人物联络与密室案"},{"n":112,"a":487,"b":488,"t":"本厅刑警恋爱物语／虚假的婚礼","s":0,"c":"B","jp":"449","r":"警方关系延续"},{"n":113,"a":497,"b":498,"t":"园子的红手帕","s":0,"c":"B","jp":"457—458","r":"园子与京极真的关系衔接"},{"n":114,"a":502,"b":505,"t":"黑衣组织之影","s":0,"c":"A","jp":"462—465","r":"组织阶段前置"},{"n":115,"a":506,"b":507,"t":"坚不可摧的雪人","s":0,"c":"B","jp":"466—467","r":"前一组织篇章的后续信息"},{"n":116,"a":512,"b":513,"t":"少年工藤新一的冒险","s":0,"c":"B","jp":"472—473","r":"保留少年时代人物关系"},{"n":117,"a":519,"b":522,"t":"与服部平次共度的三天／侦探甲子园","s":1,"c":"B","jp":"479","r":"完整特别篇；勿只看后半孤岛案"},{"n":118,"a":527,"b":528,"t":"黑色照片的去向","s":0,"c":"B","jp":"484—485","r":"关键长篇前置"},{"n":119,"a":530,"b":531,"t":"本厅刑警恋爱物语8／左手的无名指","s":0,"c":"B","jp":"487","r":"警方人物关系的重要推进"},{"n":120,"a":536,"b":537,"t":"服部平次VS工藤新一／滑雪场的推理对决","s":0,"c":"C","jp":"490","r":"两位侦探的往事与雪山谜案"},{"n":121,"a":538,"b":551,"t":"红与黑的碰撞","s":1,"c":"A","jp":"491—504","r":"14集整体保留；不要抽掉中间案件"},{"n":122,"a":554,"b":555,"t":"卡拉OK包房的死角","s":0,"c":"B","jp":"507—508","r":"上一阶段人物收束"},{"n":123,"a":556,"b":558,"t":"红白黄色与侦探团／双重暗号／新一VS冲矢昴","s":0,"c":"A","jp":"509—511","r":"新阶段开端；两个案件交错，三集连看"},{"n":124,"a":560,"b":561,"t":"杀意源自咖啡之香","s":0,"c":"C","jp":"513—514","r":"日常场景中的推理"},{"n":125,"a":562,"b":563,"t":"怪盗基德的瞬间移动魔术","s":0,"c":"C","jp":"515","r":"以公开挑战和视觉诡计为看点"},{"n":126,"a":564,"b":566,"t":"风林火山","s":1,"c":"B","jp":"516—517","r":"长野警方与连续案件"},{"n":127,"a":570,"b":576,"t":"杀人犯工藤新一／真实身份／真正想问的事／蓝色火花","s":1,"c":"A","jp":"521—525","r":"身份篇与后续一并保留，不要停在574"},{"n":128,"a":583,"b":586,"t":"伤痕系列：初恋／过去／新伤痕／刑警之魂","s":0,"c":"C","jp":"532—535","r":"四集警方往事与连续案件"},{"n":129,"a":593,"b":594,"t":"鱼儿消失的一角岩","s":0,"c":"B","jp":"542—543","r":"关键人物线索"},{"n":130,"a":608,"b":612,"t":"与危险的二人同行／死亡之馆·赤壁","s":1,"c":"B","jp":"557—561","r":"608是引子，609—612为完整长篇"},{"n":131,"a":614,"b":615,"t":"侦探团VS强盗团","s":0,"c":"A","jp":"563—564","r":"核心悬疑线索"},{"n":132,"a":619,"b":620,"t":"白鸟警部／樱花的回忆","s":0,"c":"B","jp":"568—569","r":"警方人物关系起点"},{"n":133,"a":624,"b":625,"t":"令人害羞的护身符的去向","s":0,"c":"B","jp":"573—574","r":"平次与和叶关系"},{"n":134,"a":629,"b":632,"t":"红色前兆／黑与13／逼近的黑色／摇曳的红色目标","s":0,"c":"A","jp":"578—581","r":"多条主线交汇，四集整体观看"},{"n":135,"a":634,"b":636,"t":"小林老师的恋爱／白鸟警部的失恋／樱花之恋","s":0,"c":"B","jp":"583—585","r":"警方关系篇；636后半已进入下一案"},{"n":136,"a":637,"b":638,"t":"消失的麒麟之角／基德VS四神侦探团","s":0,"c":"B","jp":"586—587","r":"与636后半相连，不从637孤立开始"},{"n":137,"a":643,"b":644,"t":"猴子与熊手的酉之市侦探物语","s":0,"c":"B","jp":"592—593","r":"小兰相关人物剧情"},{"n":138,"a":654,"b":656,"t":"降灵会双重密室事件","s":0,"c":"C","jp":"603—605","r":"降灵会、连续悬念与双重密室"},{"n":139,"a":659,"b":660,"t":"背叛的白色情人节","s":0,"c":"C","jp":"608—609","r":"毛利家庭关系的精选日常"},{"n":140,"a":661,"b":664,"t":"被害者是工藤新一／犬伏城炎之魔犬","s":1,"c":"C","jp":"610—613","r":"引子与城堡怪谈完整保留"},{"n":141,"a":667,"b":672,"t":"福尔摩斯的默示录","s":1,"c":"A","jp":"616—621","r":"伦敦长篇；主角人物线的重要推进"},{"n":142,"a":673,"b":674,"t":"紧急事态252","s":0,"c":"B","jp":"622—623","r":"紧接伦敦后的关键人物线索"},{"n":143,"a":675,"b":675,"t":"初恋的视频信件","s":0,"c":"B","jp":"624","r":"后续警方人物关系起点"},{"n":144,"a":697,"b":698,"t":"幽灵旅馆的推理对决","s":0,"c":"B","jp":"646—647","r":"重要人物入门"},{"n":145,"a":699,"b":701,"t":"侦探事务所挟持事件","s":0,"c":"B","jp":"648—650","r":"紧接新人物入门"},{"n":146,"a":702,"b":703,"t":"柯南VS平次／东西侦探推理对决","s":0,"c":"B","jp":"651","r":"人物试探与搭档推理"},{"n":147,"a":704,"b":707,"t":"毒与幻的设计","s":1,"c":"C","jp":"652—655","r":"完整多集案件与新配角"},{"n":148,"a":708,"b":709,"t":"博士的视频网站","s":0,"c":"B","jp":"656—657","r":"人物互动线索"},{"n":149,"a":711,"b":712,"t":"与初恋的共同搜查","s":0,"c":"B","jp":"659—660","r":"警方人物关系衔接"},{"n":150,"a":719,"b":720,"t":"婚礼前夜","s":1,"c":"B","jp":"667—668","r":"重要人物入门"},{"n":151,"a":723,"b":726,"t":"侦探们的夜想曲","s":1,"c":"A","jp":"671—674","r":"整体保留"},{"n":152,"a":727,"b":728,"t":"一点都不原谅","s":0,"c":"B","jp":"675—676","r":"核心人物线索"},{"n":153,"a":733,"b":735,"t":"赌上性命的恋爱转播","s":0,"c":"B","jp":"681—683","r":"警方长篇与后续人物线索"},{"n":154,"a":736,"b":737,"t":"泡沫、蒸汽和烟","s":0,"c":"B","jp":"684—685","r":"关键人物线索"},{"n":155,"a":742,"b":743,"t":"工藤优作未解决的事件","s":0,"c":"B","jp":"690—691","r":"身份与人物关系线索"},{"n":156,"a":751,"b":752,"t":"逼近灰原秘密的黑影","s":1,"c":"B","jp":"699—700","r":"神秘列车篇的直接前置"},{"n":157,"a":753,"b":756,"t":"漆黑的神秘列车","s":1,"c":"A","jp":"701—704","r":"列车长篇；四集连看，不提前查身份"},{"n":158,"a":757,"b":758,"t":"密室中的柯南／解谜的波本","s":0,"c":"A","jp":"705—706","r":"神秘列车篇的必要后续"},{"n":159,"a":762,"b":763,"t":"众人目击的事件","s":0,"c":"C","jp":"710—711","r":"平次调查与后续衔接"},{"n":160,"a":764,"b":767,"t":"服部平次与吸血鬼馆","s":0,"c":"C","jp":"712—715","r":"古宅怪谈与长篇案件"},{"n":161,"a":768,"b":769,"t":"能面宅邸中舞动的鬼","s":0,"c":"C","jp":"716—717","r":"面具与古宅怪谈；保留气氛型原创案"},{"n":162,"a":774,"b":775,"t":"香甜冰冷的快递","s":0,"c":"B","jp":"722—723","r":"关键人物互动"},{"n":163,"a":779,"b":780,"t":"装满水果的宝箱","s":0,"c":"B","jp":"727—728","r":"保留人物线索"},{"n":164,"a":783,"b":784,"t":"现场的邻居是前男友","s":0,"c":"B","jp":"731—732","r":"重要人物入门"},{"n":165,"a":786,"b":787,"t":"茱蒂的追忆与赏花的陷阱","s":0,"c":"A","jp":"734","r":"后续身份线索"},{"n":166,"a":793,"b":794,"t":"小兰也倒在浴室里","s":0,"c":"B","jp":"740—741","r":"人物信息衔接"},{"n":167,"a":797,"b":798,"t":"嫌疑犯是京极真","s":0,"c":"B","jp":"744—745","r":"关键人物线索及园子关系"},{"n":168,"a":799,"b":800,"t":"怪盗基德VS京极真","s":0,"c":"B","jp":"746—747","r":"两条人物线交汇"},{"n":169,"a":801,"b":802,"t":"本厅刑警恋爱物语／坦白与真相","s":0,"c":"B","jp":"748—749","r":"警方关系发展"},{"n":170,"a":807,"b":809,"t":"赤女的惨剧","s":1,"c":"B","jp":"754—756","r":"山间怪谈与人物疑云并行"},{"n":171,"a":812,"b":813,"t":"结局惊人的恋爱小说","s":0,"c":"B","jp":"759—760","r":"关键长篇前置"},{"n":172,"a":816,"b":817,"t":"柯南与平次／恋爱的暗号","s":0,"c":"B","jp":"763—764","r":"平次关系发展"},{"n":173,"a":823,"b":824,"t":"气氛僵硬的茶会","s":0,"c":"B","jp":"770—771","r":"后续核心篇章前置"},{"n":174,"a":825,"b":826,"t":"工藤新一水族馆事件","s":0,"c":"B","jp":"772—773","r":"新一与小兰的往事"},{"n":175,"a":832,"b":836,"t":"绯色系列：序章／追求／交错／回归／真相","s":1,"c":"A","jp":"779—783","r":"五集完整保留；不要跳过前置案件"},{"n":176,"a":838,"b":839,"t":"太阁恋爱的名人战","s":0,"c":"B","jp":"785—786","r":"重要家庭与警方人物关系"},{"n":177,"a":840,"b":841,"t":"沉入盛夏泳池的谜","s":0,"c":"B","jp":"787—788","r":"新阶段人物线索"},{"n":178,"a":845,"b":846,"t":"三个第一发现者","s":0,"c":"B","jp":"792—793","r":"新阶段组织信息"},{"n":179,"a":863,"b":864,"t":"镰鼬的旅馆","s":0,"c":"C","jp":"808—809","r":"传统怪谈与平次查案"},{"n":180,"a":865,"b":867,"t":"县警的黑暗／川中岛杀人事件","s":1,"c":"B","jp":"810—812","r":"长野警方连环案与新阶段人物线索"},{"n":181,"a":869,"b":870,"t":"博客女演员的密室事件","s":0,"c":"B","jp":"814—815","r":"新人物的后续"},{"n":182,"a":877,"b":878,"t":"嫌疑犯是热恋情侣","s":0,"c":"B","jp":"822—823","r":"警方人物后续"},{"n":183,"a":882,"b":883,"t":"美味得要死的拉面2","s":0,"c":"B","jp":"827—828","r":"家庭线索"},{"n":184,"a":885,"b":887,"t":"僵尸包围的别墅","s":0,"c":"C","jp":"830—832","r":"山庄怪谈与平次"},{"n":185,"a":891,"b":892,"t":"关系不好的女子乐队","s":0,"c":"B","jp":"836—837","r":"重要人物往事线索"},{"n":186,"a":898,"b":899,"t":"侦探团各自的秘密","s":0,"c":"B","jp":"843—844","r":"保留零散身份线索"},{"n":187,"a":902,"b":903,"t":"千叶的UFO疑难事件","s":0,"c":"B","jp":"847—848","r":"警方关系延续"},{"n":188,"a":904,"b":905,"t":"结婚申请表的密码","s":0,"c":"B","jp":"849—850","r":"家庭关系与背景信息"},{"n":189,"a":908,"b":909,"t":"樱花班的回忆","s":0,"c":"B","jp":"853—854","r":"主角童年关系"},{"n":190,"a":916,"b":917,"t":"与17年前一样的案发现场","s":1,"c":"A","jp":"861—862","r":"旧案线索"},{"n":191,"a":918,"b":919,"t":"灵魂侦探被杀事件","s":0,"c":"B","jp":"863—864","r":"紧接前案的背景线索"},{"n":192,"a":921,"b":922,"t":"背叛的舞台","s":1,"c":"A","jp":"866—867","r":"人物关系核心篇章"},{"n":193,"a":927,"b":929,"t":"柯南与平次的鵺传说","s":0,"c":"B","jp":"872—874","r":"民俗长篇与重要新人物"},{"n":194,"a":933,"b":934,"t":"试衣间的死角","s":0,"c":"B","jp":"878—879","r":"人物试探"},{"n":195,"a":936,"b":937,"t":"涟漪中的魔法师","s":1,"c":"A","jp":"881—882","r":"核心往事篇"},{"n":196,"a":940,"b":941,"t":"在波洛咖啡店解谜","s":0,"c":"B","jp":"885—886","r":"人物线交汇"},{"n":197,"a":944,"b":945,"t":"新任教师的骸骨事件","s":0,"c":"B","jp":"889—890","r":"重要人物入门"},{"n":198,"a":949,"b":950,"t":"隔壁的江户式推理秀","s":0,"c":"B","jp":"894—895","r":"重要人物入门"},{"n":199,"a":951,"b":952,"t":"手臂白皙的女人","s":0,"c":"B","jp":"896—897","r":"新人物后续"},{"n":200,"a":964,"b":965,"t":"燃烧帐篷的怪物","s":0,"c":"B","jp":"909—910","r":"人物疑云推进"},{"n":201,"a":971,"b":972,"t":"恋爱与推理的剑道大赛","s":0,"c":"B","jp":"916—917","r":"平次关系与后续衔接"},{"n":202,"a":974,"b":975,"t":"女高中生三人组的秘密咖啡店","s":0,"c":"B","jp":"919—920","r":"后续旅行篇的人物准备"},{"n":203,"a":980,"b":981,"t":"充满心意的手机挂件","s":0,"c":"B","jp":"925—926","r":"旅行篇前置"},{"n":204,"a":982,"b":985,"t":"红色的修学旅行","s":1,"c":"A","jp":"927—928","r":"主角关系重要节点；两集特别篇看完整"},{"n":205,"a":998,"b":999,"t":"寻找玛丽亚！","s":0,"c":"A","jp":"941—942","r":"直接接续修学旅行；不可省略后续"},{"n":206,"a":1009,"b":1011,"t":"充满谜团的鸡尾酒","s":1,"c":"A","jp":"952—954","r":"核心人物往事与行动"},{"n":207,"a":1028,"b":1031,"t":"目标是警视厅交通部","s":0,"c":"B","jp":"971—974","r":"警方事件与组织线索"},{"n":208,"a":1040,"b":1041,"t":"基德VS高明／被盯上的嘴唇","s":0,"c":"B","jp":"983—984","r":"人物关系与长线信息；不当作纯盗宝案"},{"n":209,"a":1050,"b":1052,"t":"代班的京极真","s":0,"c":"B","jp":"993—995","r":"人物身份试探"},{"n":210,"a":1060,"b":1062,"t":"36宫格的完美犯罪","s":1,"c":"B","jp":"1003—1005","r":"雪山封闭环境与关键人物"},{"n":211,"a":1068,"b":1069,"t":"采野菜与四叶草","s":0,"c":"B","jp":"1011—1012","r":"新阶段人物线索"},{"n":212,"a":1075,"b":1077,"t":"藏不住的古董盘","s":0,"c":"B","jp":"1018—1020","r":"身份与家庭线索"},{"n":213,"a":1081,"b":1082,"t":"大冈红叶的挑战书","s":0,"c":"B","jp":"1024—1025","r":"背景线索与平次人物关系"},{"n":214,"a":1086,"b":1086,"t":"警察学校篇 CASE.松田阵平","s":0,"c":"B","jp":"1029","r":"警校五人组背景"},{"n":215,"a":1090,"b":1092,"t":"太阁名人的将棋盘","s":0,"c":"B","jp":"1033—1035","r":"家庭线索与调查"},{"n":216,"a":1095,"b":1095,"t":"警察学校篇 CASE.伊达航","s":0,"c":"B","jp":"1038","r":"警校人物背景"},{"n":217,"a":1099,"b":1099,"t":"警察学校篇 CASE.萩原研二","s":0,"c":"B","jp":"1042","r":"警校人物背景"},{"n":218,"a":1102,"b":1103,"t":"天罚降临的生日宴","s":1,"c":"A","jp":"1045—1046","r":"药物与身份线索"},{"n":219,"a":1110,"b":1111,"t":"坠落于牧场的火种／牧场里的不祥之影","s":0,"c":"A","jp":"1053—1054","r":"关键人物线交汇；不同平台译名有别"},{"n":220,"a":1116,"b":1117,"t":"冲野洋子与阁楼密室","s":0,"c":"B","jp":"1059—1060","r":"零散组织线索不能漏"},{"n":221,"a":1118,"b":1118,"t":"警察学校篇 CASE.诸伏景光","s":0,"c":"B","jp":"1061","r":"警校人物背景"},{"n":222,"a":1128,"b":1129,"t":"工藤优作的推理秀","s":0,"c":"A","jp":"1071—1072","r":"关键人物与组织线索"},{"n":223,"a":1134,"b":1134,"t":"警察学校篇 CASE.降谷零","s":0,"c":"B","jp":"特别篇","r":"按本表接在1128—1129后、1135—1137前"},{"n":224,"a":1135,"b":1137,"t":"黑衣组织的谋略","s":1,"c":"A","jp":"1077—1079","r":"完整三集"},{"n":225,"a":1143,"b":1144,"t":"不吉利的结缘","s":0,"c":"B","jp":"1085—1086","r":"平次人物线延续"},{"n":226,"a":1151,"b":1152,"t":"宫野明美的时间胶囊","s":0,"c":"A","jp":"1093—1094","r":"重要人物往事"},{"n":227,"a":1156,"b":1157,"t":"风之女神／萩原千速","s":0,"c":"B","jp":"1098—1099","r":"重要警方人物入门"},{"n":228,"a":1163,"b":1164,"t":"基德VS安室／王妃的刘海","s":0,"c":"B","jp":"1105—1106","r":"两条人物线交汇"},{"n":229,"a":1167,"b":1168,"t":"高木、伊达与手帐中的约定","s":0,"c":"B","jp":"1109—1110","r":"警方与警校人物关系"},{"n":230,"a":1173,"b":1174,"t":"千速与重悟的相亲派对","s":0,"c":"B","jp":"1115—1116","r":"新警方人物后续"},{"n":231,"a":1181,"b":1182,"t":"群马与长野县境的遗体","s":0,"c":"B","jp":"1123—1124","r":"警方人物背景与长野线"},{"n":232,"a":1193,"b":1194,"t":"大冈红叶的甜蜜陷阱","s":0,"c":"B","jp":"1135—1136","r":"人物关系与背景信息"},{"n":233,"a":1202,"b":1203,"t":"酒店连续爆炸事件","s":0,"c":"A","jp":"1144—1145","r":"核心人物线索"},{"n":234,"a":1206,"b":1207,"t":"侦探团与两名带领者／二人的引路人","s":0,"c":"A","jp":"1148—1149","r":"关键人物试探与旧事线索"},{"n":235,"a":1208,"b":1209,"t":"怪盗基德与王冠魔术","s":0,"c":"B","jp":"1150—1151","r":"含长线信息，不因是基德篇而跳过"},{"n":236,"a":1222,"b":1225,"t":"17年前的真相","s":1,"c":"A","jp":"1164—1167","r":"近年核心长篇；四集整体保留"},{"n":237,"a":1227,"b":1228,"t":"吃人的教室之谜","s":0,"c":"B","jp":"1169—1170","r":"保留上一个主线长篇的后续"},{"n":238,"a":1229,"b":1230,"t":"成为管家的理由","s":0,"c":"B","jp":"1171—1172","r":"重要配角背景"},{"n":239,"a":1236,"b":1237,"t":"鹫雄山的红莲髑髅","s":0,"c":"B","jp":"1178—1179","r":"民俗怪谈与平次、和叶人物线"},{"n":240,"a":1242,"b":1243,"t":"红砖仓库与消失的绑架犯","s":0,"c":"B","jp":"1184—1185","r":"警方新角色后续"},{"n":241,"a":1252,"b":1253,"t":"基德VS白马／苍蓝王座","s":0,"c":"B","jp":"1193—1194","r":"近期人物交汇与身份推理"},{"n":242,"a":1264,"b":1265,"t":"绑架柯南与梓的究竟是谁？","s":0,"c":"B","jp":"1204—1205","r":"近期人物行动线；前后篇一起看"}],"ep":{"1":[323085,0,"云霄飞车杀人事件"],"2":[323086,0,"董事长千金绑架事件"],"3":[323087,0,"偶像密室杀人事件"],"4":[323088,0,"大都会暗号地图事件"],"5":[323089,0,"新干线大爆破事件"],"7":[323091,0,"每月一件礼物威胁事件"],"8":[323092,0,"美术馆杀人事件"],"10":[323094,0,"足球选手恐吓事件"],"11":[323095,0,"钢琴奏鸣曲《月光》杀人事件"],"12":[323096,0,"钢琴奏鸣曲《月光》杀人事件"],"13":[323097,0,"步美被绑架了"],"14":[323098,0,"奇怪的寻人事件"],"19":[323103,0,"六月新娘杀人事件"],"21":[323105,0,"鬼屋杀人事件"],"23":[323107,0,"豪华客轮连续杀人事件（上集）"],"24":[323108,0,"豪华客轮连续杀人事件（下集）"],"28":[323112,0,"小五郎同学会杀人事件（上集）"],"29":[323113,0,"小五郎同学会杀人事件（下集）"],"33":[323117,0,"咖啡店杀人事件"],"35":[323119,0,"山庄绷带怪人之杀人事件（上集）"],"36":[323120,0,"山庄绷带怪人之杀人事件（下集）"],"40":[323124,0,"企业家千金杀人事件（上集）"],"41":[323125,0,"企业家千金杀人事件（下集）"],"43":[323127,0,"卡拉OK杀人事件"],"44":[323128,0,"江户川柯南诱拐事件"],"47":[323131,0,"雪山山庄杀人事件"],"49":[323133,0,"外交官杀人事件（上集）"],"50":[323134,0,"外交官杀人事件（下集）"],"51":[323135,0,"图书馆杀人事件"],"53":[323137,0,"雾天狗传说杀人事件"],"54":[323138,0,"雾天狗传说杀人事件"],"56":[323140,0,"电玩公司杀人事件"],"59":[323143,0,"福尔摩斯迷杀人事件（上集）"],"60":[323144,0,"福尔摩斯迷杀人事件（下集）"],"70":[323154,0,"暗夜公爵杀人事件（事件篇）"],"71":[323155,0,"暗夜公爵杀人事件（疑惑篇）"],"72":[323156,0,"暗夜公爵杀人事件（解决篇）"],"78":[323162,0,"柯南对怪盗基德"],"79":[323163,0,"柯南对怪盗基德"],"80":[323164,0,"名家连续惨死事件（上集）"],"81":[323165,0,"名家连续惨死事件（下集）"],"87":[323171,0,"滑雪别墅杀人事件（上集）"],"88":[323172,0,"滑雪别墅杀人事件（下集）"],"99":[323183,0,"走投无路的名侦探 连续两大杀人事件"],"100":[323184,0,"走投无路的名侦探 连续两大杀人事件"],"101":[323185,0,"走投无路的名侦探 连续两大杀人事件"],"102":[323186,0,"走投无路的名侦探 连续两大杀人事件"],"103":[323187,0,"离别美酒杀人事件"],"106":[323190,0,"初恋情人回忆事件（上集）"],"107":[323191,0,"初恋情人回忆事件（下集）"],"124":[323208,0,"浪花连续杀人事件"],"125":[323209,0,"浪花连续杀人事件"],"128":[323212,0,"浴室密室事件（上集）"],"129":[323213,0,"浴室密室事件（下集）"],"135":[323219,0,"黑暗组织十亿元抢劫事件"],"136":[323220,0,"来自黑暗组织的女子 大学教授杀人事件"],"137":[323221,0,"来自黑暗组织的女子 大学教授杀人事件"],"138":[323222,0,"来自黑暗组织的女子 大学教授杀人事件"],"139":[323223,0,"来自黑暗组织的女子 大学教授杀人事件"],"140":[323224,0,"竞技场一视同仁胁迫事件（上集）"],"141":[323225,0,"竞技场一视同仁胁迫事件（下集）"],"142":[323226,0,"魔术爱好者杀人事件（事件篇）"],"143":[323227,0,"魔术爱好者杀人事件（疑惑篇）"],"144":[323228,0,"魔术爱好者杀人事件（解决篇）"],"146":[323230,0,"蓝色古堡探索事件（上集）"],"147":[323231,0,"蓝色古堡探索事件（下集）"],"151":[323235,0,"结婚前夕的密室事件（上集）"],"152":[323236,0,"结婚前夕的密室事件（下集）"],"154":[323238,0,"上野出发的北斗星三号（上集）"],"155":[323239,0,"上野出发的北斗星三号（下集）"],"156":[323240,0,"总局刑警恋爱物语（上集）"],"157":[323241,0,"总局刑警恋爱物语（下集）"],"160":[323244,0,"汽车爆炸事件的真相（上集）"],"161":[323245,0,"汽车爆炸事件的真相（下集）"],"163":[323247,0,"园子的危险夏日物语（上集）"],"164":[323248,0,"园子的危险夏日物语（下集）"],"166":[323250,0,"总局刑警恋爱物语2（上集）"],"167":[323251,0,"总局刑警恋爱物语2（下集）"],"172":[323256,0,"飞天密室 工藤新一最初的事件"],"173":[323257,0,"飞天密室 工藤新一最初的事件"],"177":[323261,0,"鸟取蜘蛛之家的古怪（事件篇）"],"178":[323262,0,"鸟取蜘蛛之家的古怪（疑惑篇）"],"179":[323263,0,"鸟取蜘蛛之家的古怪（解决篇）"],"181":[323265,0,"黑暗中的死角（上集）"],"182":[323266,0,"黑暗中的死角（下集）"],"185":[323269,0,"二十年后的杀机 交响乐号连续杀人事件"],"186":[323270,0,"二十年后的杀机 交响乐号连续杀人事件"],"187":[323271,0,"二十年后的杀机 交响乐号连续杀人事件"],"188":[323272,0,"二十年后的杀机 交响乐号连续杀人事件"],"190":[323274,0,"与黑暗组织的再会（灰原篇）"],"191":[323275,0,"与黑暗组织的再会（柯南篇）"],"192":[323276,0,"与黑暗组织的再会（解决篇）"],"198":[323282,0,"诅咒假面的冷笑"],"199":[323283,0,"诅咒假面的冷笑"],"203":[323287,0,"生死一瞬间 侦探队洞窟探险记"],"204":[323288,0,"生死一瞬间 名侦探负伤记"],"205":[323289,0,"生死一瞬间 第三个选择"],"206":[323290,0,"生死一瞬间 黑衣骑士"],"207":[323291,0,"生死一瞬间 新一回来了"],"208":[323292,0,"生死一瞬间 约会的地点"],"214":[323298,0,"嫌疑犯毛利小五郎（上集）"],"215":[323299,0,"嫌疑犯毛利小五郎（下集）"],"220":[323304,0,"总局刑警恋爱物语3（上集）"],"221":[323305,0,"总局刑警恋爱物语3（下集）"],"223":[323307,0,"通往迷宫的入口 巨大神像的愤怒"],"224":[323308,0,"通往迷宫的入口 巨大神像的愤怒"],"228":[323312,0,"蘑菇、山熊与侦探队（上集）"],"229":[323313,0,"蘑菇、山熊与侦探队（下集）"],"233":[323317,0,"目暮警官尘封在内心里的秘密（上集）"],"234":[323318,0,"目暮警官尘封在内心里的秘密（下集）"],"235":[323319,0,"名侦探齐聚一堂！工藤新一VS怪盗基德"],"236":[323320,0,"名侦探齐聚一堂！工藤新一VS怪盗基德"],"237":[323321,0,"名侦探齐聚一堂！工藤新一VS怪盗基德"],"238":[323322,0,"名侦探齐聚一堂！工藤新一VS怪盗基德"],"239":[323323,0,"满口谎言的委托人（上集）"],"240":[323324,0,"满口谎言的委托人（下集）"],"241":[323325,0,"人鱼失踪记（事件篇）"],"242":[323326,0,"人鱼失踪记（推理篇）"],"243":[323327,0,"人鱼失踪记（解决篇）"],"245":[323329,0,"战斗游戏的陷阱（上集）"],"246":[323330,0,"战斗游戏的陷阱（下集）"],"249":[323333,0,"神秘乘客（上集）"],"250":[323334,0,"神秘乘客（下集）"],"257":[323341,0,"大阪3K事件（上集）"],"258":[323342,0,"大阪3K事件（下集）"],"259":[323343,0,"新干线护送事件（上集）"],"260":[323344,0,"新干线护送事件（下集）"],"261":[323345,0,"元太的灾难"],"265":[323349,0,"网中谜（上集）"],"266":[323350,0,"网中谜（下集）"],"268":[323352,0,"偶像的秘密（上集）"],"269":[323353,0,"偶像的秘密（下集）"],"272":[323356,0,"总局刑警恋爱物语4（上集）"],"273":[323357,0,"总局刑警恋爱物语4（下集）"],"277":[323361,0,"来自芝加哥的男人（上集）"],"278":[323362,0,"来自芝加哥的男人（下集）"],"282":[323366,0,"大阪双重疑案 浪花剑客与太阁城"],"283":[323367,0,"大阪双重疑案 浪花剑客与太阁城"],"284":[323368,0,"大阪双重疑案 浪花剑客与太阁城"],"285":[323369,0,"大阪双重疑案 浪花剑客与太阁城"],"288":[323372,0,"情人节的真相（事件篇）"],"289":[323373,0,"情人节的真相（推理篇）"],"290":[323374,0,"情人节的真相（解决篇）"],"291":[323375,0,"犯罪的纪念品（上集）"],"292":[323376,0,"犯罪的纪念品（下集）"],"293":[323377,0,"情急之下的应变之道（上集）"],"294":[323378,0,"情急之下的应变之道（下集）"],"296":[323380,0,"幽灵鬼屋的真相（上集）"],"297":[323381,0,"幽灵鬼屋的真相（下集）"],"299":[323383,0,"英文老师vs关西名侦探（上集）"],"300":[323384,0,"英文老师vs关西名侦探（下集）"],"301":[323385,0,"疯狂足球迷（上集）"],"302":[323386,0,"疯狂足球迷（下集）"],"306":[323390,0,"中华街的雨中幻影（上集）"],"307":[323391,0,"中华街的雨中幻影（下集）"],"308":[323392,0,"工藤新一的纽约事件（事件篇）"],"309":[323393,0,"工藤新一的纽约事件（推理篇）"],"310":[323394,0,"工藤新一的纽约事件（解决篇）"],"311":[323395,0,"光彦森林迷失记（上集）"],"312":[323396,0,"光彦森林迷失记（下集）"],"313":[323397,0,"孤岛之花与海龙宫（事件篇）"],"314":[323398,0,"孤岛之花与海龙宫（探索篇）"],"315":[323399,0,"孤岛之花与海龙宫（解决篇）"],"323":[323407,0,"恶意与圣者的游行（上集）"],"324":[323408,0,"恶意与圣者的游行（下集）"],"326":[323410,0,"震撼警政厅 1200万人质"],"327":[323411,0,"震撼警政厅 1200万人质"],"328":[323412,0,"震撼警政厅 1200万人质"],"329":[323413,0,"震撼警政厅 1200万人质"],"332":[323416,0,"残留下来的无声证言（上集）"],"333":[323417,0,"残留下来的无声证言（下集）"],"334":[323418,0,"接触黑色组织（交涉篇）"],"335":[323419,0,"接触黑色组织（追缉篇）"],"336":[323420,0,"接触黑色组织（决死篇）"],"337":[323421,0,"沾染夕阳的女儿节娃娃（上集）"],"338":[323422,0,"沾染夕阳的女儿节娃娃（下集）"],"348":[323432,0,"服部平次一筹莫展！（上集）"],"349":[323433,0,"服部平次一筹莫展！（下集）"],"350":[323434,0,"火焰中的红马（事件篇）"],"351":[323435,0,"火焰中的红马（搜查篇）"],"352":[323436,0,"火焰中的红马（解决篇）"],"354":[323438,0,"用钱买不到的友情（上集）"],"355":[323439,0,"用钱买不到的友情（下集）"],"358":[323442,0,"相似的两位公主（上集）"],"359":[323443,0,"相似的两位公主（下集）"],"360":[323444,0,"东都现像所的秘密（上集）"],"361":[323445,0,"东都现像所的秘密（下集）"],"363":[323447,0,"4台保时捷（上集）"],"364":[323448,0,"4台保时捷（下集）"],"365":[323449,0,"隐藏在厕所中的秘密（上集）"],"366":[323450,0,"隐藏在厕所中的秘密（下集）"],"369":[323453,0,"便利商店的陷阱（上集）"],"370":[323454,0,"便利商店的陷阱（下集）"],"371":[323455,0,"与黑暗组织直面对决 满月之夜的双重谜案"],"372":[323456,0,"与黑暗组织直面对决 满月之夜的双重谜案"],"373":[323457,0,"与黑暗组织直面对决 满月之夜的双重谜案"],"374":[323458,0,"与黑暗组织直面对决 满月之夜的双重谜案"],"375":[323459,0,"与黑暗组织直面对决 满月之夜的双重谜案"],"376":[323460,0,"找寻臀部上的记号（上集）"],"377":[323461,0,"找寻臀部上的记号（下集）"],"380":[323464,0,"被遗忘的移动电话（上集）"],"381":[323465,0,"被遗忘的移动电话（下集）"],"386":[323470,0,"怪盗基德令人惊异的空中漫步"],"387":[323471,0,"怪盗基德令人惊异的空中漫步"],"389":[323473,0,"总局刑警恋爱物语5（上集）"],"390":[323474,0,"总局刑警恋爱物语5（下集）"],"392":[323476,0,"帝丹高中校园灵异事件（上集）"],"393":[323477,0,"帝丹高中校园灵异事件（下集）"],"412":[323496,0,"谁才是推理王（上集）"],"413":[323497,0,"谁才是推理王（下集）"],"414":[323498,0,"甲子园的奇迹向无形的恶魔挑战"],"415":[323499,0,"甲子园的奇迹向无形的恶魔挑战"],"416":[323500,0,"甲子园的奇迹向无形的恶魔挑战"],"417":[323501,0,"甲子园的奇迹向无形的恶魔挑战"],"419":[323503,0,"斯托拉帝巴利欧斯不协调的和音（前奏曲）"],"420":[323504,0,"斯托拉帝巴利欧斯不协调的和音（间奏曲）"],"421":[323505,0,"斯托拉帝巴利欧斯不协调的和音（终曲）"],"424":[323508,0,"总局刑警恋爱物语6（上集）"],"425":[323509,0,"总局刑警恋爱物语6（下集）"],"428":[323512,0,"诡异宅院大冒险（封印篇）"],"429":[323513,0,"诡异宅院大冒险（机关篇）"],"430":[323514,0,"诡异宅院大冒险（解决篇）"],"432":[323516,0,"诡谲家族的委托（上集）"],"433":[323517,0,"诡谲家族的委托（下集）"],"434":[323518,0,"满腹疑惑的小兰"],"440":[323524,0,"柯南平次之推理魔术（戏法篇）"],"441":[323525,0,"柯南平次之推理魔术（宅第篇）"],"442":[323526,0,"柯南平次之推理魔术（解决篇）"],"449":[323533,0,"佛灭日出现的恶灵（事件篇）"],"450":[323534,0,"佛灭日出现的恶灵（疑惑篇）"],"451":[323535,0,"佛灭日出现的恶灵（解决篇）"],"455":[323539,0,"银杏色的初恋（上集）"],"456":[323540,0,"银杏色的初恋（下集）"],"459":[323543,0,"黑色冲击！组织之手逼近的瞬间"],"460":[323544,0,"黑色冲击！组织之手逼近的瞬间"],"461":[323545,0,"黑色冲击！组织之手逼近的瞬间"],"462":[323546,0,"黑色冲击！组织之手逼近的瞬间"],"463":[323547,0,"黑色冲击！组织之手逼近的瞬间"],"467":[323551,0,"无法回头的两个人（上集）"],"468":[323552,0,"无法回头的两个人（下集）"],"469":[323553,0,"总局刑警恋爱物语7（上集）"],"470":[323554,0,"总局刑警恋爱物语7（下集）"],"484":[323568,0,"被封死的窗户（上集）"],"485":[323569,0,"被封死的窗户（下集）"],"487":[323571,0,"总局刑警恋爱物语 虚假的结婚典礼"],"488":[323572,0,"总局刑警恋爱物语 虚假的结婚典礼"],"497":[323581,0,"园子的红色手帕（上集）"],"498":[323582,0,"园子的红色手帕（下集）"],"502":[323586,0,"黑暗组织之影 小小目击者"],"503":[323587,0,"黑暗组织之影 奇妙的照明"],"504":[323588,0,"黑暗组织之影 神秘的高额报酬"],"505":[323589,0,"黑暗组织之影 珍珠流星"],"506":[323590,0,"打不破的雪人（上集）"],"507":[323591,0,"打不破的雪人（下集）"],"512":[323596,0,"工藤新一少年冒险（上集）"],"513":[323597,0,"工藤新一少年冒险（下集）"],"519":[323603,0,"与服部平次共度的3天"],"520":[323604,0,"与服部平次共度的3天"],"521":[323605,0,"与服部平次共度的3天"],"522":[323606,0,"与服部平次共度的3天"],"527":[323611,0,"黑色相片的下落（上集）"],"528":[323612,0,"黑色相片的下落（下集）"],"530":[323614,0,"总局刑警恋爱物语8 左手的无名指"],"531":[323615,0,"总局刑警恋爱物语8 左手的无名指"],"536":[323620,0,"服部平次VS工藤新一 滑雪场的推理对决"],"537":[323621,0,"服部平次VS工藤新一 滑雪场的推理对决"],"538":[323622,0,"红与黑的碰撞 开端"],"539":[323623,0,"红与黑的碰撞 血缘"],"540":[323624,0,"红与黑的碰撞 惨叫"],"541":[323625,0,"红与黑的碰撞 冥土"],"542":[323626,0,"红与黑的碰撞 昏睡"],"543":[323627,0,"红与黑的碰撞 侵入"],"544":[323628,0,"红与黑的碰撞 觉醒"],"545":[323629,0,"红与黑的碰撞 搅乱"],"546":[323630,0,"红与黑的碰撞 伪装"],"547":[323631,0,"红与黑的碰撞 遗言"],"548":[323632,0,"红与黑的碰撞 嫌疑"],"549":[323633,0,"红与黑的碰撞 清白"],"550":[323634,0,"红与黑的碰撞 决死"],"551":[323635,0,"红与黑的碰撞 殉职"],"554":[323638,0,"卡拉OK包厢的死角（上集）"],"555":[323639,0,"卡拉OK包厢的死角（下集）"],"556":[323640,0,"红白黄色和侦探团"],"557":[323641,0,"柯南VS双重暗号之谜"],"558":[323642,0,"推理对决！新一vs冲矢昴"],"560":[323644,0,"产生杀意的咖啡香（上集）"],"561":[323645,0,"产生杀意的咖啡香（下集）"],"562":[323646,0,"怪盗基德的瞬间移动魔术"],"563":[323647,0,"怪盗基德的瞬间移动魔术"],"564":[323648,0,"风林火山 迷宫的铠甲武士"],"565":[323649,0,"风林火山 迷宫的铠甲武士"],"566":[323650,0,"风林火山 阴影与雷光的对决"],"570":[323654,0,"杀人犯 工藤新一"],"571":[323655,0,"杀人犯 工藤新一"],"572":[323656,0,"新一的真实身份和小兰的眼泪"],"573":[323657,0,"新一的真实身份和小兰的眼泪"],"574":[323658,0,"真正想知道的事"],"575":[323659,0,"憎恨的蓝色火花（上集）"],"576":[323660,0,"憎恨的蓝色火花（下集）"],"583":[323667,0,"初恋的伤痕"],"584":[323668,0,"唤起过去的伤痕"],"585":[323669,0,"新伤痕和吹口哨的男子"],"586":[323670,0,"旧伤痕和刑警之魂"],"593":[323677,0,"鱼儿消失的一角岩（上集）"],"594":[323678,0,"鱼儿消失的一角岩（下集）"],"608":[323692,0,"危险的二人组"],"609":[323693,0,"死亡之馆 赤壁（三顾之礼）"],"610":[323694,0,"死亡之馆 赤壁（掌中之物）"],"611":[323695,0,"死亡之馆 赤壁（逝者孔明）"],"612":[323696,0,"死亡之馆 赤壁（空城计）"],"614":[323698,0,"侦探团vs抢匪团（骚动）"],"615":[323699,0,"侦探团vs抢匪团（沉默）"],"619":[323703,0,"白鸟警官 樱花的回忆（上集）"],"620":[323704,0,"白鸟警官 樱花的回忆（下集）"],"624":[323708,0,"令人害羞的护身符的下落（上集）"],"625":[323709,0,"令人害羞的护身符的下落（下集）"],"629":[323713,0,"引发危机的红色前兆"],"630":[323714,0,"黑色13的暗示"],"631":[323715,0,"步步逼近的黑色期限"],"632":[323716,0,"摇曳的红色目标"],"634":[323718,0,"小林老师的恋情"],"635":[323719,0,"白鸟警官的失恋"],"636":[323720,0,"超越时空的樱花之恋"],"637":[323721,0,"消失于黑暗中的麒麟角"],"638":[323722,0,"基德VS四神侦探团"],"643":[323727,0,"猴子与熊手的追捕令（上集）"],"644":[323728,0,"猴子与熊手的追捕令（下集）"],"654":[323738,0,"降灵会W密室事件（第一个密室）"],"655":[323739,0,"降灵会W密室事件（第二个密室）"],"656":[323740,0,"降灵会W密室事件（密室开放）"],"659":[323743,0,"背叛的白色情人节（上集）"],"660":[323744,0,"背叛的白色情人节（下集）"],"661":[323745,0,"被害者是工藤新一"],"662":[323746,0,"犬伏城 炎之魔犬（鬼火之章）"],"663":[323747,0,"犬伏城 炎之魔犬（足迹之章）"],"664":[323748,0,"犬伏城 炎之魔犬（公主之章）"],"667":[323751,0,"福尔摩斯默示录（名侦探的弟子）"],"668":[323752,0,"福尔摩斯默示录（Love is 0）"],"669":[323753,0,"福尔摩斯默示录（撒旦）"],"670":[323754,0,"福尔摩斯默示录（Code Break）"],"671":[323755,0,"福尔摩斯默示录（草地女王）"],"672":[323756,0,"福尔摩斯默示录（0 is Start）"],"673":[323757,0,"紧急事件252（上集）"],"674":[323758,0,"紧急事件252（下集）"],"675":[323759,0,"初恋的录影信"],"697":[323781,0,"幽灵饭店的推理对决（上集）"],"698":[323782,0,"幽灵饭店的推理对决（下集）"],"699":[323783,0,"侦探事务所挟持事件（突发）"],"700":[323784,0,"侦探事务所挟持事件（狙击）"],"701":[323785,0,"侦探事务所挟持事件（解放）"],"702":[323786,0,"柯南VS平次东西侦探推理对决"],"703":[323787,0,"柯南VS平次东西侦探推理对决"],"704":[323788,0,"毒和幻的设计（EYE）"],"705":[323789,0,"毒和幻的设计（S）"],"706":[323790,0,"毒和幻的设计（Poison）"],"707":[323791,0,"毒和幻的设计（Illusion）"],"708":[323792,0,"博士的影音网站（上集）"],"709":[323793,0,"博士的影音网站（下集）"],"711":[323795,0,"初恋情人的共同调查（上集）"],"712":[323796,0,"初恋情人的共同调查（下集）"],"719":[323803,0,"婚礼前夕（上集）"],"720":[323804,0,"婚礼前夕（下集）"],"723":[323807,0,"侦探们的夜想曲（案件）"],"724":[323808,0,"侦探们的夜想曲（诱拐）"],"725":[323809,0,"侦探们的夜想曲（推理）"],"726":[323810,0,"侦探们的夜想曲（波本）"],"727":[323811,0,"一点都不能原谅（上集）"],"728":[323812,0,"一点都不能原谅（下集）"],"733":[323817,0,"赌上性命的恋爱转播（转播开始）"],"734":[323818,0,"赌上性命的恋爱转播（穷途末路）"],"735":[323819,0,"赌上性命的恋爱转播（冲入现场）"],"736":[323820,0,"泡沫、热气与烟（上集）"],"737":[323821,0,"泡沫、热气与烟（下集）"],"742":[323826,0,"工藤优作的未解决事件（上集）"],"743":[323827,0,"工藤优作的未解决事件（下集）"],"751":[323835,1,"迫近灰原秘密的黑影（上集）"],"752":[323836,1,"迫近灰原秘密的黑影（下集）"],"753":[323837,1,"漆黑的神秘列车（发车）"],"754":[323838,1,"漆黑的神秘列车（隧道）"],"755":[323839,1,"漆黑的神秘列车（交叉）"],"756":[323840,1,"漆黑的神秘列车（终点）"],"757":[323841,1,"密室中的柯南"],"758":[323842,1,"揭开谜底的波本"],"762":[323846,1,"大家都看见了（上集）"],"763":[323847,1,"大家都看见了（下集）"],"764":[323848,1,"服部平次与吸血鬼馆（一）"],"765":[323849,1,"服部平次与吸血鬼馆（二）"],"766":[323850,1,"服部平次与吸血鬼馆（三）"],"767":[323851,1,"服部平次与吸血鬼馆（四）"],"768":[323852,1,"能面宅邸中跳舞的鬼（上集）"],"769":[323853,1,"能面宅邸中跳舞的鬼（下集）"],"774":[323858,1,"又甜又冷的宅急便（上集）"],"775":[323859,1,"又甜又冷的宅急便（下集）"],"779":[323863,1,"装满水果的宝箱（上集）"],"780":[323864,1,"装满水果的宝箱（下集）"],"783":[323867,1,"现场的邻人是前男友（上集）"],"784":[323868,1,"现场的邻人是前男友（下集）"],"786":[323870,1,"茱蒂的回忆与赏花的陷阱"],"787":[323871,1,"茱蒂的回忆与赏花的陷阱"],"793":[323877,1,"小兰也倒在浴室了（上集）"],"794":[323878,1,"小兰也倒在浴室了（下集）"],"797":[323881,1,"嫌疑犯是京极真（上集）"],"798":[323882,1,"嫌疑犯是京极真（下集）"],"799":[323883,1,"怪盗基德vs京极真（上集）"],"800":[323884,1,"怪盗基德vs京极真（下集）"],"801":[323885,1,"总局刑警恋爱物语（表白）"],"802":[323886,1,"总局刑警恋爱物语（真相）"],"807":[323891,1,"红衣女的惨剧（水蒸气）"],"808":[323892,1,"红衣女的惨剧（恶灵）"],"809":[323893,1,"红衣女的惨剧（报仇）"],"812":[323896,1,"恋爱小说的意外结果（上集）"],"813":[323897,1,"恋爱小说的意外结果（下集）"],"816":[323900,1,"柯南与平次 恋爱的暗号（上集）"],"817":[323901,1,"柯南与平次 恋爱的暗号（下集）"],"823":[323907,1,"气氛僵硬的茶会（上集）"],"824":[323908,1,"气氛僵硬的茶会（下集）"],"825":[323909,1,"工藤新一水族馆事件（上集）"],"826":[323910,1,"工藤新一水族馆事件（下集）"],"832":[323916,1,"绯色的序章"],"833":[323917,1,"绯色的追寻"],"834":[323918,1,"绯色的交叉"],"835":[323919,1,"绯色的回归"],"836":[323920,1,"绯色的真相"],"838":[323922,1,"太阁恋爱的名人战（上集）"],"839":[323923,1,"太阁恋爱的名人战（下集）"],"840":[323924,1,"沉入盛夏游泳池的谜团（上集）"],"841":[323925,1,"沉入盛夏游泳池的谜团（下集）"],"845":[323929,1,"三个第一发现者（上集）"],"846":[323930,1,"三个第一发现者（下集）"],"863":[323947,1,"镰鼬旅馆（上集）"],"864":[323948,1,"镰鼬旅馆（下集）"],"865":[323949,1,"县警的黑暗（上集）"],"866":[323950,1,"县警的黑暗（中集）"],"867":[323951,1,"县警的黑暗（下集）"],"869":[323953,1,"博客女星密室事件（上集）"],"870":[323954,1,"博客女星密室事件（下集）"],"877":[323961,1,"嫌犯是热恋情侣（上集）"],"878":[323962,1,"嫌犯是热恋情侣（下集）"],"882":[323966,1,"好吃得要死的拉面2（上集）"],"883":[323967,1,"好吃得要死的拉面2（下集）"],"885":[323969,1,"被僵尸包围的别墅（上集）"],"886":[323970,1,"被僵尸包围的别墅（中集）"],"887":[323971,1,"被僵尸包围的别墅（下集）"],"891":[402181,1,"关系不好的女子乐团（前篇）"],"892":[402182,1,"关系不好的女子乐团（后篇）"],"898":[402188,1,"不明真相的侦探团（前篇）"],"899":[402189,1,"不明真相的侦探团（后篇）"],"902":[402192,1,"千叶的UFO疑难事件（前篇）"],"903":[402193,1,"千叶的UFO疑难事件（后篇）"],"904":[402194,1,"结婚登记申请书的密码（前篇）"],"905":[402195,1,"结婚登记申请书的密码（后篇）"],"908":[402198,1,"樱花班的回忆（兰GIRL）"],"909":[402199,1,"樱花班的回忆（新一BOY）"],"916":[402206,1,"与17年前相同的现场（前篇）"],"917":[402207,1,"与17年前相同的现场（后篇）"],"918":[402208,1,"灵魂侦探谋杀案（前篇）"],"919":[402209,1,"灵魂侦探谋杀案（后篇）"],"921":[402211,1,"背叛的舞台（前篇）"],"922":[402212,1,"背叛的舞台（后篇）"],"927":[402217,1,"柯南与平次的鵺传说（鸣叫篇）"],"928":[402218,1,"柯南与平次的鵺传说（爪痕篇）"],"929":[402219,1,"柯南与平次的鵺传说（解决篇）"],"933":[402223,1,"试衣间的死角（前篇）"],"934":[402224,1,"试衣间的死角（后篇）"],"936":[402226,1,"浪涛的魔法师（前篇）"],"937":[402227,1,"浪涛的魔法师（后篇）"],"940":[402231,1,"解谜就在白罗咖啡厅（前篇）"],"941":[402232,1,"解谜就在白罗咖啡厅（后篇）"],"944":[323976,1,"新老师的骸骨事件（上集）"],"945":[323977,1,"新老师的骸骨事件（下集）"],"949":[323981,1,"隔壁的江户式推理秀（上集）"],"950":[323982,1,"隔壁的江户式推理秀（下集）"],"951":[323983,1,"手臂白皙的女人（上集）"],"952":[323984,1,"手臂白皙的女人（下集）"],"964":[323996,1,"燃烧帐篷的怪物（上集）"],"965":[323997,1,"燃烧帐篷的怪物（下集）"],"971":[324003,1,"恋爱与推理的剑道大赛（上集）"],"972":[324004,1,"恋爱与推理的剑道大赛（下集）"],"974":[324006,1,"三名女高中生的秘密咖啡店（上集）"],"975":[324007,1,"三名女高中生的秘密咖啡店（下集）"],"980":[324012,1,"饱含心意的手机挂件（上集）"],"981":[324013,1,"饱含心意的手机挂件（下集）"],"982":[324014,1,"红色的修学旅行（鲜红篇）"],"983":[324016,1,"红色的修学旅行（鲜红篇）"],"984":[324017,1,"红色的修学旅行（恋红篇）"],"985":[324018,1,"红色的修学旅行（恋红篇）"],"998":[324031,1,"寻找玛丽亚（上集）"],"999":[324032,1,"寻找玛丽亚（下集）"],"1009":[324043,1,"充满谜团的鸡尾酒（上集）"],"1010":[324044,1,"充满谜团的鸡尾酒（中集）"],"1011":[324045,1,"充满谜团的鸡尾酒（下集）"],"1028":[324063,1,"目标是警视厅交通部（一）"],"1029":[324064,1,"目标是警视厅交通部（二）"],"1030":[324065,1,"目标是警视厅交通部（三）"],"1031":[324066,1,"目标是警视厅交通部（四）"],"1040":[342646,1,"基德对高明 被盯上的嘴唇（上集）"],"1041":[347163,1,"基德对高明 被盯上的嘴唇（下集）"],"1050":[378266,1,"替身京极真（上集）"],"1051":[378873,1,"替身京极真（中集）"],"1052":[380823,1,"替身京极真（下集）"],"1060":[400938,1,"36宫格的完美犯罪（上集）"],"1061":[400939,1,"36宫格的完美犯罪（中集）"],"1062":[400940,1,"36宫格的完美犯罪（下集）"],"1068":[411080,1,"挖野菜与四叶草（上集）"],"1069":[411081,1,"挖野菜与四叶草（下集）"],"1075":[411087,1,"藏不住的古董盘（上集）"],"1076":[411088,1,"藏不住的古董盘（中集）"],"1077":[411089,1,"藏不住的古董盘（下集）"],"1081":[424940,1,"大冈红叶的挑战书（上集）"],"1082":[424941,1,"大冈红叶的挑战书（下集）"],"1086":[430606,1,"警察学校篇 疯狂警察故事 松田阵平篇"],"1090":[459334,1,"太阁名人的将棋盘（初手篇）"],"1091":[459335,1,"太阁名人的将棋盘（妙手篇）"],"1092":[459336,1,"太阁名人的将棋盘（将军篇）"],"1095":[459339,1,"警察学校篇 疯狂警察故事 伊达航篇"],"1099":[459343,1,"警察学校篇 疯狂警察故事 萩原研二篇"],"1102":[515145,1,"遭天谴的生日宴（上集）"],"1103":[515813,1,"遭天谴的生日宴（下集）"],"1110":[669712,1,"掉入牧场的火种（上集）"],"1111":[675273,1,"掉入牧场的火种（下集）"],"1116":[688563,1,"冲野洋子和阁楼的密室（上集）"],"1117":[688564,1,"冲野洋子和阁楼的密室（下集）"],"1118":[693143,1,"警察学校篇 疯狂警察故事 诸伏景光篇"],"1128":[735621,1,"工藤优作的推理秀（上集）"],"1129":[735622,1,"工藤优作的推理秀（下集）"],"1134":[738582,1,"警察学校篇 疯狂警察故事 降谷零篇"],"1135":[742693,1,"黑暗组织的谋略（狩猎）"],"1136":[743374,1,"黑暗组织的谋略（上岸）"],"1137":[744558,1,"黑暗组织的谋略（真身）"],"1143":[752753,1,"不祥的缘分（上集）"],"1144":[753629,1,"不祥的缘分（下集）"],"1151":[771781,1,"宫野明美的时间胶囊（上集）"],"1152":[773478,1,"宫野明美的时间胶囊（下集）"],"1156":[780191,1,"风之女神 萩原千速（上集）"],"1157":[780192,1,"风之女神 萩原千速（下集）"],"1163":[789746,1,"基德对决安室 王妃的刘海（上集）"],"1164":[790786,1,"基德对决安室 王妃的刘海（下集）"],"1167":[810142,1,"高木、伊达与笔记本的约定（上集）"],"1168":[810908,1,"高木、伊达与笔记本的约定（下集）"],"1173":[816338,1,"千速与重悟的相亲大会（上集）"],"1174":[817116,1,"千速与重悟的相亲大会（下集）"],"1181":[823533,1,"群马与长野县边境上的遗体（上集）"],"1182":[824073,1,"群马与长野县边境上的遗体（下集）"],"1193":[836401,1,"大冈红叶的甜蜜陷阱（上集）"],"1194":[837117,1,"大冈红叶的甜蜜陷阱（下集）"],"1202":[1195170,1,"酒店连环爆炸案件（上集）"],"1203":[1205624,1,"酒店连环爆炸案件（下集）"],"1206":[1351814,1,"侦探团与两位引领者（上集）"],"1207":[1368616,1,"侦探团与两位引领者（下集）"],"1208":[1400431,1,"怪盗基德与王冠魔术（上集）"],"1209":[1422652,1,"怪盗基德与王冠魔术（下集）"],"1222":[1731376,1,"17年前的真相 血染的骑士"],"1223":[1815951,1,"17年前的真相 慧眼的恶魔"],"1224":[1815952,1,"17年前的真相 远见的角行"],"1225":[1845627,1,"17年前的真相 女王的谋略"],"1227":[1977500,1,"吃人教室的古怪（上集）"],"1228":[2003432,1,"吃人教室的古怪（下集）"],"1229":[2056341,1,"我当管家的原因（上集）"],"1230":[2080554,1,"我当管家的原因（下集）"],"1236":[2270738,1,"鹫雄山的红莲骷髅（上集）"],"1237":[2270739,1,"鹫雄山的红莲骷髅（下集）"],"1242":[2476110,1,"红砖仓库 消失的绑架犯（上集）"],"1243":[2508263,1,"红砖仓库 消失的绑架犯（下集）"],"1252":[3309785,1,"基德对决白马 青之王座（上集）"],"1253":[3358251,1,"基德对决白马 青之王座（下集）"],"1264":[4508569,1,"谁绑架了柯南与小梓？（上集）"],"1265":[4508570,1,"谁绑架了柯南与小梓？（下集）"]}};
+const E = D.entries, EP = D.ep;
+const byN = new Map(E.map(e => [e.n, e]));
+const TOTAL_EPS = E.reduce((s, e) => s + e.b - e.a + 1, 0);
+const LS = 'conan-archive-v1', LSUI = 'conan-archive-ui-v1';
+const $ = id => document.getElementById(id);
+function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(3, '0');
+const range = e => e.a === e.b ? `第${e.a}集` : `第${e.a}—${e.b}集`;
+const epsOf = e => { const r = []; for (let k = e.a; k <= e.b; k++) r.push(k); return r; };
+const epUrl = k => `https://www.bilibili.com/bangumi/play/ep${EP[k][0]}`;
+const CAT = {A:'主线', B:'人物', C:'案件'};
+
+// ---- state ----
+const state = { done: new Set(), last: null };
+const cached = lsGet(LS);
+if (cached) { state.done = new Set(cached.done || []); state.last = cached.last || null; }
+const ui = Object.assign({ s: 'all', cats: [], q: '' }, lsGet(LSUI) || {});
+ui.q = '';
+let cloudEmpty = false, readonly = false, justN = null;
+
+function current(){ return E.find(e => !state.done.has(e.n)) || null; }
+function watchedEps(){ let s = 0; for (const n of state.done){ const e = byN.get(n); if (e) s += e.b - e.a + 1; } return s; }
+
+// ---- render ----
+function epChip(k, e, opts = {}){
+  const [, vip, title] = EP[k];
+  const isLast = state.last && state.last.ep === k;
+  const tip = `B站 第${k}集 ${title}${vip ? '（需大会员）' : ''}${isLast ? ' · 上次打开' : ''}`;
+  return `<a class="ep${vip ? ' vip' : ''}${isLast ? ' last' : ''}" href="${epUrl(k)}" target="_blank" rel="noopener" data-ep="${k}" data-n="${e.n}" title="${esc(tip)}" aria-label="${esc(tip)}">${opts.play ? '<span class="pl">▶</span>' : ''}${k}</a>`;
+}
+
+function gaugeSVG(doneCount){
+  const C = 2 * Math.PI * 60, p = doneCount / E.length;
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="已看 ${doneCount} / ${E.length} 篇">
+    <line x1="132" y1="132" x2="186" y2="186" stroke="var(--gold)" stroke-width="15" stroke-linecap="round"/>
+    <line x1="152" y1="152" x2="183" y2="183" stroke="#0d1730" stroke-opacity=".45" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="86" cy="86" r="72" fill="rgba(255,255,255,.05)" stroke="var(--gold)" stroke-width="7"/>
+    <circle cx="86" cy="86" r="60" fill="none" stroke="var(--onnavy-line)" stroke-width="9"/>
+    <circle cx="86" cy="86" r="60" fill="none" stroke="var(--red)" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 86 86)"/>
+    <path d="M50 52 Q62 38 80 34" stroke="rgba(255,255,255,.35)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <text x="86" y="92" text-anchor="middle" font-family="Courier Prime, Courier New, monospace" font-weight="700" font-size="40" fill="var(--onnavy)">${doneCount}</text>
+    <text x="86" y="114" text-anchor="middle" font-family="Courier Prime, Courier New, monospace" font-size="13" fill="var(--onnavy-muted)">/ ${E.length} 篇</text>
+  </svg>`;
+}
+
+function fmtTime(t){
+  const d = new Date(t); if (isNaN(d)) return '';
+  const p = x => String(x).padStart(2, '0');
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function renderHero(){
+  const done = state.done.size, cur = current(), we = watchedEps();
+  const pct = Math.round(we / TOTAL_EPS * 100);
+  const gauge = `<div class="gauge">${gaugeSVG(done)}<div class="cap">已看 ${we} / ${TOTAL_EPS} 集<br>调查进度 ${pct}%</div></div>`;
+  if (!cur){
+    $('hero').innerHTML = gauge + `<div class="next"><div class="eyebrow">Case closed</div><h2>全部 242 篇已结案</h2><p class="hwhy">整份精选名单都看完了。想重温哪一篇，在下面的档案里点集数就能跳到B站。</p></div>`;
+    return;
+  }
+  const resume = state.last && state.last.n === cur.n ? state.last.ep : cur.a;
+  const resumed = state.last && state.last.n === cur.n;
+  const lastLine = state.last ? `上次打开：第${state.last.ep}集《${esc(byN.get(state.last.n)?.t || '')}》 · ${fmtTime(state.last.at)}` : '点集数会记下你上次打开的是哪一集';
+  $('hero').innerHTML = gauge + `<div class="next">
+    <div class="eyebrow">下一案件 · File ${pad(cur.n)}</div>
+    <h2>${cur.s ? '<span class="star-big">★</span>' : ''}${esc(cur.t)}</h2>
+    <div class="hmeta"><span><b>${range(cur)}</b></span><span>日版参照 ${esc(cur.jp)}</span><span><span class="tag t${cur.c}">${CAT[cur.c]}</span></span></div>
+    <p class="hwhy">${esc(cur.r)}</p>
+    <div class="heps">${epsOf(cur).map(k => epChip(k, cur)).join('')}</div>
+    <div class="hact">
+      <a class="btn btn-play" href="${epUrl(resume)}" target="_blank" rel="noopener" data-ep="${resume}" data-n="${cur.n}">
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z" fill="currentColor"/></svg>
+        ${resumed ? '继续看' : '去B站看'}第${resume}集</a>
+      <button type="button" class="btn btn-done" data-toggle="${cur.n}" ${readonly ? 'disabled' : ''}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        看完了，下一篇</button>
+    </div>
+    <div class="hlast">${lastLine}</div>
+  </div>`;
+}
+
+function renderStats(){
+  const groups = [
+    ['A 主线·身份', e => e.c === 'A'], ['B 人物·衔接', e => e.c === 'B'],
+    ['C 精品案件', e => e.c === 'C'], ['★ 重点推荐', e => e.s]
+  ];
+  $('stats').innerHTML = groups.map(([label, f]) => {
+    const all = E.filter(f), d = all.filter(e => state.done.has(e.n)).length;
+    return `<div class="stat"><div class="k"><span>${label}</span></div>
+      <div class="v">${d}<small> / ${all.length}</small></div>
+      <div class="bar"><span style="width:${(d / all.length * 100).toFixed(1)}%"></span></div></div>`;
+  }).join('');
+}
+
+function matches(e){
+  if (ui.s === 'todo' && state.done.has(e.n)) return false;
+  if (ui.s === 'done' && !state.done.has(e.n)) return false;
+  const cats = ui.cats.filter(c => c !== 'S');
+  if (cats.length && !cats.includes(e.c)) return false;
+  if (ui.cats.includes('S') && !e.s) return false;
+  const q = ui.q.trim();
+  if (q){
+    if (/^\d+$/.test(q)){ const k = +q; if (!(k >= e.a && k <= e.b) && e.n !== k) return false; }
+    else {
+      const hay = e.t + e.r + epsOf(e).map(k => EP[k][2]).join('');
+      if (!hay.toLowerCase().includes(q.toLowerCase())) return false;
+    }
+  }
+  return true;
+}
+
+function renderList(){
+  const cur = current();
+  const rows = E.filter(matches);
+  $('count').textContent = `显示 ${rows.length} / ${E.length} 篇`;
+  if (!rows.length){ $('list').innerHTML = `<div class="empty">没有符合条件的案件。换个关键词，或者点“全部”看完整名单。</div>`; return; }
+  $('list').innerHTML = rows.map(e => {
+    const done = state.done.has(e.n), isCur = cur && cur.n === e.n;
+    const cls = `case${done ? ' done' : ''}${isCur ? ' current' : ''}${justN === e.n ? ' just' : ''}`;
+    const stamp = done ? '<span class="stamp" aria-hidden="true">已结案</span>' : isCur ? '<span class="stamp" aria-hidden="true">调查中</span>' : '';
+    return `<article class="${cls}" id="f${pad(e.n)}">
+      <div class="no"><span class="lbl">FILE</span><span class="fno">${pad(e.n)}</span></div>
+      <div class="main">
+        <div class="meta"><span class="range">${range(e)}</span><span class="tag t${e.c}">${CAT[e.c]}</span>${e.s ? '<span class="st">★ 重点</span>' : ''}${isCur ? '<span class="nowpill">下一篇</span>' : ''}<span>日版 ${esc(e.jp)}</span></div>
+        <h3 class="ttl">${esc(e.t)}</h3>
+        <p class="why">${esc(e.r)}</p>
+        <div class="eps">${epsOf(e).map((k, i) => epChip(k, e, {play: i === 0})).join('')}</div>
+      </div>
+      <button type="button" class="chk" data-toggle="${e.n}" aria-pressed="${done}" aria-label="${done ? '取消已看' : '标记看完'}：${esc(e.t)}" ${readonly ? 'disabled' : ''}>
+        <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      ${stamp}
+    </article>`;
+  }).join('');
+}
+
+function renderTools(){
+  ['all', 'todo', 'done'].forEach(s => {
+    const b = $('fs-' + s);
+    const n = s === 'all' ? E.length : s === 'done' ? state.done.size : E.length - state.done.size;
+    b.textContent = `${{all:'全部', todo:'待看', done:'已看'}[s]} ${n}`;
+    b.setAttribute('aria-pressed', ui.s === s);
+  });
+  ['A', 'B', 'C', 'S'].forEach(c => $('fc-' + c).setAttribute('aria-pressed', ui.cats.includes(c)));
+}
+
+function renderNotice(){
+  const n = $('notice');
+  const msg = cloudEmpty && state.done.size === 0 ? '还没有观看记录。看完一篇就点右边的圆圈，进度会自动同步到你所有设备。' : '';
+  n.hidden = !msg; n.textContent = msg;
+}
+
+function renderAll(){ renderHero(); renderStats(); renderTools(); renderNotice(); renderList(); justN = null; }
+
+// ---- sync status ----
+function setSync(s){
+  const el = $('sync'); el.dataset.s = s;
+  el.querySelector('span').textContent = {
+    loading: '正在读取进度…', ok: '已同步', pending: '等待保存…', saving: '正在保存…',
+    offline: '离线 · 已存在本机', error: '同步失败 · 点此重试'
+  }[s];
+}
+
+// ---- persistence: textdb.online (no login), backed up to GitHub by a scheduled job ----
+const SYNC_KEY = 'conan-archive-VRM1TuuEqvDVBOatadX7Jk';
+const DB_READ = 'https://textdb.online/' + SYNC_KEY;
+const DB_WRITE = 'https://textdb.online/update';
+let localAt = (cached && cached.at) || 0;   // time of the last change made on any device we adopted
+let dirty = !!(cached && cached.dirty);     // a change on this device not yet uploaded
+let writeTimer = null, writing = false, again = false;
+
+function saveLocal(){ lsSet(LS, { done: [...state.done], last: state.last, at: localAt, dirty }); }
+function sorted(){ return [...state.done].sort((a, b) => a - b); }
+function snapshot(){ return JSON.stringify({ v: 1, done: sorted(), last: state.last, at: localAt }); }
+function parse(t){ try { const d = JSON.parse(t); return d && Array.isArray(d.done) ? d : null; } catch (e){ return null; } }
+function adopt(d){
+  const same = JSON.stringify([d.done.slice().sort((a, b) => a - b), d.last || null]) === JSON.stringify([sorted(), state.last]);
+  state.done = new Set(d.done); state.last = d.last || null; localAt = d.at || 0; dirty = false; saveLocal();
+  if (!same) renderAll();
+}
+async function readRemote(){
+  const r = await fetch(DB_READ + '?_=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) throw new Error('read ' + r.status);
+  return parse((await r.text()).trim());
+}
+async function readBackup(){
+  try { const r = await fetch('progress-backup.json?_=' + Date.now(), { cache: 'no-store' }); return r.ok ? parse(await r.text()) : null; }
+  catch (e){ return null; }
+}
+function failState(){ setSync(navigator.onLine === false ? 'offline' : 'error'); }
+
+function persist(){
+  localAt = Date.now(); dirty = true; saveLocal();
+  setSync('pending');
+  clearTimeout(writeTimer); writeTimer = setTimeout(upload, 1200);
+}
+async function upload(){
+  clearTimeout(writeTimer); writeTimer = null;
+  if (writing){ again = true; return; }
+  writing = true; setSync('saving');
+  const sentAt = localAt;
+  try {
+    const r = await fetch(DB_WRITE, { method: 'POST', body: new URLSearchParams({ key: SYNC_KEY, value: snapshot() }) });
+    const j = await r.json();
+    if (!j || j.status !== 1) throw new Error('write rejected');
+    if (localAt === sentAt) dirty = false;
+    cloudEmpty = false; saveLocal(); setSync(dirty ? 'pending' : 'ok'); renderNotice();
+  } catch (e){ failState(); }
+  writing = false;
+  if (again){ again = false; upload(); }
+}
+async function pull(){
+  if (writing || writeTimer) return;
+  try {
+    const remote = await readRemote();
+    if (!remote){
+      // Nothing on the server (first run, or the record expired): restore from the GitHub backup if it is newer.
+      cloudEmpty = true;
+      const b = await readBackup();
+      if (b && !dirty && (b.at || 0) > localAt) adopt(b);
+      if (state.done.size || state.last){ dirty = true; upload(); } else { setSync('ok'); renderAll(); }
+      return;
+    }
+    cloudEmpty = false;
+    if (dirty && localAt > (remote.at || 0)){ upload(); return; }
+    adopt(remote);
+    setSync('ok'); renderNotice();
+  } catch (e){ failState(); }
+}
+$('sync').addEventListener('click', () => { if ($('sync').dataset.s === 'error' || $('sync').dataset.s === 'offline') dirty ? upload() : pull(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
+window.addEventListener('online', () => { dirty ? upload() : pull(); });
+setInterval(() => { if (document.visibilityState === 'visible') pull(); }, 30000);
+
+// ---- actions ----
+let toastTimer = null, undoFn = null;
+function toast(msg, undo){
+  $('toastMsg').textContent = msg; undoFn = undo || null;
+  $('toastUndo').hidden = !undo;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4500);
+}
+$('toastUndo').addEventListener('click', () => { if (undoFn){ undoFn(); undoFn = null; } $('toast').classList.remove('show'); });
+
+function toggle(n){
+  if (readonly) return;
+  const e = byN.get(n), was = state.done.has(n);
+  const before = { done: new Set(state.done), last: state.last };
+  if (was) state.done.delete(n); else { state.done.add(n); justN = n; }
+  persist(); renderAll();
+  const nx = current();
+  toast(was ? `已取消：${e.t}` : `已结案：${e.t}${nx ? ' · 下一篇 ' + nx.t : ''}`, () => {
+    state.done = before.done; state.last = before.last; persist(); renderAll();
+  });
+}
+
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('[data-toggle]');
+  if (t){ toggle(+t.dataset.toggle); return; }
+  const a = ev.target.closest('a[data-ep]');
+  if (a){
+    state.last = { n: +a.dataset.n, ep: +a.dataset.ep, at: Date.now() };
+    persist();
+    setTimeout(renderAll, 50);
+  }
+  const s = ev.target.closest('.seg button');
+  if (s){ ui.s = s.dataset.s; saveUI(); renderTools(); renderList(); return; }
+  const c = ev.target.closest('.fchip');
+  if (c){ const k = c.dataset.c; ui.cats = ui.cats.includes(k) ? ui.cats.filter(x => x !== k) : [...ui.cats, k]; saveUI(); renderTools(); renderList(); }
+});
+function saveUI(){ lsSet(LSUI, { s: ui.s, cats: ui.cats }); }
+let qTimer = null;
+$('q').addEventListener('input', ev => { clearTimeout(qTimer); qTimer = setTimeout(() => { ui.q = ev.target.value; renderList(); }, 120); });
+$('locate').addEventListener('click', () => {
+  const cur = current(); if (!cur) return;
+  if (!matches(cur)){ ui.s = 'all'; ui.cats = []; ui.q = ''; $('q').value = ''; saveUI(); renderTools(); renderList(); }
+  const el = $('f' + pad(cur.n)); if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - $('tools').offsetHeight - 16;
+  window.scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+});
+
+renderAll();
+setSync('loading');
+pull();
+</script>
+</body>
+</html>
