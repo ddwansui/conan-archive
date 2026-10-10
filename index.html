@@ -559,7 +559,7 @@ const IN_APP = !!window.__biliApp;
 const EP_BY_ID = new Map(); for (const k in EP) if (EP[k][0]) EP_BY_ID.set(EP[k][0], +k);
 const entryOfEp = k => E.find(e => k >= e.a && k <= e.b);
 function biliPost(msg){ try { window.webkit.messageHandlers.bili.postMessage(msg); } catch (e){} }
-const bili = { s: 'syncing', at: 0, newly: 0, msg: '' };
+const bili = { s: 'syncing', at: 0, newly: 0, seen: 0, fin: 0, msg: '' };
 function renderBili(){
   const el = $('bili'); if (!IN_APP){ el.hidden = true; return; }
   el.hidden = false; el.dataset.s = bili.s;
@@ -567,7 +567,7 @@ function renderBili(){
   const when = t ? `${p(t.getHours())}:${p(t.getMinutes())}` : '';
   el.innerHTML = {
     syncing: '<span class="dot"></span><span>正在读取B站观看记录…</span>',
-    ok: `<span class="dot"></span><span>B站同步：<b>${when}</b> 已同步${bili.newly ? ` · 新看完 <b>${bili.newly}</b> 篇` : ''}</span><button type="button" data-bili="sync">立即同步</button>`,
+    ok: `<span class="dot"></span><span>B站同步：<b>${when}</b> 已同步 · 读到名单内的观看记录 <b>${bili.seen}</b> 集，其中看完 <b>${bili.fin}</b> 集${bili.newly ? ` · 新看完 <b>${bili.newly}</b> 篇` : ''}</span><button type="button" data-bili="sync">立即同步</button>`,
     loggedOut: '<span class="dot"></span><span>B站未登录，登录后会自动按你在B站的观看记录打勾</span><button type="button" data-bili="login">登录B站</button>',
     error: `<span class="dot"></span><span>B站同步失败：${esc(bili.msg || '请稍后再试')}</span><button type="button" data-bili="sync">重试</button>`
   }[bili.s] || '';
@@ -575,11 +575,12 @@ function renderBili(){
 window.biliStatus = s => { Object.assign(bili, s); renderBili(); };
 window.applyBiliHistory = async items => {
   if (!(await pull())){ window.biliStatus({ s: 'error', msg: '云端进度读取失败' }); return; }
-  let changed = false, latest = null, maxView = 0;
+  let changed = false, latest = null, maxView = 0, seen = 0, fin = 0;
   for (const it of items){
     maxView = Math.max(maxView, it.viewAt || 0);
     const k = EP_BY_ID.get(it.epid); if (!k) continue;          // not an episode of this list
     const finished = it.progress === -1 || (it.duration > 0 && it.progress >= it.duration * 0.9);
+    seen++; if (finished) fin++;
     if (finished && !state.eps.has(k)){ state.eps.add(k); changed = true; }
     if (!latest || it.viewAt > latest.viewAt) latest = Object.assign({ k, finished }, it);
   }
@@ -593,7 +594,7 @@ window.applyBiliHistory = async items => {
   }
   if (changed){ if (newly.length) justN = newly[newly.length - 1].a; persist(); renderAll(); }
   if (newly.length) toast(`B站同步：新看完 ${newly.length} 篇 · ${newly.map(e => e.t).join('、')}`);
-  window.biliStatus({ s: 'ok', at: Date.now(), newly: newly.length });
+  window.biliStatus({ s: 'ok', at: Date.now(), newly: newly.length, seen, fin });
   biliPost('applied:' + maxView);
 };
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-bili]'); if (b) biliPost(b.dataset.bili); });
