@@ -142,6 +142,16 @@ button{font:inherit;color:inherit}
 .ep:hover{border-color:var(--red);color:var(--red-ink)}
 .ep .pl{font-size:9px;margin-right:4px;opacity:.7}
 .ep.soon{border-style:dashed;opacity:.75}
+.ep.seen{color:var(--muted);background:transparent;border-style:dashed}
+.ep.seen::before{content:"✓";font-size:10px;margin-right:3px;color:var(--ok)}
+.bili{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:-6px 0 14px;font-size:12.5px;color:var(--muted)}
+.bili b{color:var(--ink);font-weight:600}
+.bili button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:3px 10px;font-size:12.5px;cursor:pointer}
+.bili button:hover{border-color:var(--red);color:var(--red-ink)}
+.bili .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.bili[data-s="ok"] .dot{background:var(--ok)}
+.bili[data-s="syncing"] .dot{background:var(--gold);animation:pulse 1s infinite}
+.bili[data-s="error"] .dot,.bili[data-s="loggedOut"] .dot{background:var(--red)}
 .ep.vip::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--paper)}
 .heps .ep.vip::after{border-color:var(--navy)}
 .ep.last{border-color:var(--red);box-shadow:0 0 0 2px color-mix(in srgb,var(--red) 30%,transparent)}
@@ -203,6 +213,7 @@ footer .dot{display:inline-block;width:8px;height:8px;border-radius:50%;backgrou
     <button class="sync" id="sync" data-s="loading" type="button"><i></i><span>正在连接云端…</span></button>
   </header>
 
+  <div class="bili" id="bili" hidden></div>
   <section class="hero" id="hero" aria-live="polite"></section>
   <div class="stats" id="stats"></div>
   <div class="notice" id="notice" hidden></div>
@@ -266,9 +277,9 @@ const epUrl = k => EP[k][0] ? `https://www.bilibili.com/bangumi/play/ep${EP[k][0
 const CAT = {A:'主线', B:'人物', C:'案件'};
 
 // ---- state ----
-const state = { done: new Set(), last: null };
+const state = { done: new Set(), last: null, eps: new Set() };   // eps: single episodes B站 says you finished
 const cached = normalize(lsGet(LS));
-if (cached) { state.done = new Set(cached.done || []); state.last = cached.last || null; }
+if (cached) { state.done = new Set(cached.done || []); state.last = cached.last || null; state.eps = new Set(cached.eps || []); }
 const ui = Object.assign({ s: 'all', cats: [], q: '' }, lsGet(LSUI) || {});
 ui.q = '';
 let cloudEmpty = false, readonly = false, justN = null;
@@ -279,9 +290,9 @@ function watchedEps(){ let s = 0; for (const a of state.done){ const e = byA.get
 // ---- render ----
 function epChip(k, e, opts = {}){
   const [, vip, title] = EP[k];
-  const isLast = state.last && state.last.ep === k;
-  const tip = EP[k][0] ? `B站 第${k}集 ${title}${vip ? '（需大会员）' : ''}${isLast ? ' · 上次打开' : ''}` : `第${k}集还没在B站上线，点这里打开B站最新一集`;
-  return `<a class="ep${vip ? ' vip' : ''}${isLast ? ' last' : ''}${EP[k][0] ? '' : ' soon'}" href="${epUrl(k)}" target="_blank" rel="noopener" data-ep="${k}" data-a="${e.a}" title="${esc(tip)}" aria-label="${esc(tip)}">${opts.play ? '<span class="pl">▶</span>' : ''}${k}</a>`;
+  const isLast = state.last && state.last.ep === k, seen = state.eps.has(k);
+  const tip = EP[k][0] ? `B站 第${k}集 ${title}${vip ? '（需大会员）' : ''}${seen ? ' · 已看完' : ''}${isLast ? ' · 上次打开' : ''}` : `第${k}集还没在B站上线，点这里打开B站最新一集`;
+  return `<a class="ep${vip ? ' vip' : ''}${isLast ? ' last' : ''}${seen ? ' seen' : ''}${EP[k][0] ? '' : ' soon'}" href="${epUrl(k)}" target="_blank" rel="noopener" data-ep="${k}" data-a="${e.a}" title="${esc(tip)}" aria-label="${esc(tip)}">${opts.play ? '<span class="pl">▶</span>' : ''}${k}</a>`;
 }
 
 function gaugeSVG(doneCount){
@@ -299,6 +310,7 @@ function gaugeSVG(doneCount){
   </svg>`;
 }
 
+function mmss(s){ s = Math.max(0, Math.round(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
 function fmtTime(t){
   const d = new Date(t); if (isNaN(d)) return '';
   const p = x => String(x).padStart(2, '0');
@@ -313,9 +325,13 @@ function renderHero(){
     $('hero').innerHTML = gauge + `<div class="next"><div class="eyebrow">Case closed</div><h2>全部 ${E.length} 篇已结案</h2><p class="hwhy">整份精选名单都看完了。想重温哪一篇，在下面的档案里点集数就能跳到B站。</p></div>`;
     return;
   }
-  const resume = state.last && state.last.a === cur.a ? state.last.ep : cur.a;
-  const resumed = state.last && state.last.a === cur.a;
-  const lastLine = state.last ? `上次打开：第${state.last.ep}集《${esc(byA.get(state.last.a)?.t || '')}》 · ${fmtTime(state.last.at)}` : '点集数会记下你上次打开的是哪一集';
+  // resume at the episode left half-watched, else the first episode of this entry not yet finished
+  const unseen = epsOf(cur).filter(k => !state.eps.has(k));
+  let resume = unseen.length ? unseen[0] : cur.a;
+  if (state.last && state.last.a === cur.a && !state.eps.has(state.last.ep)) resume = state.last.ep;
+  const resumed = resume !== cur.a || (state.last && state.last.a === cur.a);
+  const pos = state.last && state.last.pos > 0 ? ` 看到 ${mmss(state.last.pos)}` : '';
+  const lastLine = state.last ? `上次看到：第${state.last.ep}集《${esc(byA.get(state.last.a)?.t || '')}》${pos} · ${fmtTime(state.last.at)}` : '点集数会记下你上次打开的是哪一集';
   $('hero').innerHTML = gauge + `<div class="next">
     <div class="eyebrow">下一案件 · File ${pad(cur.n)}</div>
     <h2>${cur.s ? '<span class="star-big">★</span>' : ''}${esc(cur.t)}</h2>
@@ -424,13 +440,14 @@ let localAt = (cached && cached.at) || 0;   // time of the last change made on a
 let dirty = !!(cached && cached.dirty);     // a change on this device not yet uploaded
 let writeTimer = null, writing = false, again = false;
 
-function saveLocal(){ lsSet(LS, { v: 2, done: [...state.done], last: state.last, at: localAt, dirty }); }
+function saveLocal(){ lsSet(LS, { v: 2, done: [...state.done], eps: [...state.eps], last: state.last, at: localAt, dirty }); }
 function sorted(){ return [...state.done].sort((a, b) => a - b); }
-function snapshot(){ return JSON.stringify({ v: 2, done: sorted(), last: state.last, at: localAt }); }
+function snapshot(){ return JSON.stringify({ v: 2, done: sorted(), eps: [...state.eps].sort((a, b) => a - b), last: state.last, at: localAt }); }
 function parse(t){ try { const d = JSON.parse(t); return d && Array.isArray(d.done) ? normalize(d) : null; } catch (e){ return null; } }
 function adopt(d){
-  const same = JSON.stringify([d.done.slice().sort((a, b) => a - b), d.last || null]) === JSON.stringify([sorted(), state.last]);
-  state.done = new Set(d.done); state.last = d.last || null; localAt = d.at || 0; dirty = false; saveLocal();
+  const key = (done, eps, last) => JSON.stringify([done.slice().sort((a, b) => a - b), eps.slice().sort((a, b) => a - b), last || null]);
+  const same = key(d.done, d.eps || [], d.last) === key([...state.done], [...state.eps], state.last);
+  state.done = new Set(d.done); state.eps = new Set(d.eps || []); state.last = d.last || null; localAt = d.at || 0; dirty = false; saveLocal();
   if (!same) renderAll();
 }
 async function readRemote(){
@@ -465,7 +482,7 @@ async function upload(){
   if (again){ again = false; upload(); }
 }
 async function pull(){
-  if (writing || writeTimer) return;
+  if (writing || writeTimer) return true;   // a local change is about to be uploaded: it is the newest
   try {
     const remote = await readRemote();
     if (!remote){
@@ -474,13 +491,14 @@ async function pull(){
       const b = await readBackup();
       if (b && !dirty && (b.at || 0) > localAt) adopt(b);
       if (state.done.size || state.last){ dirty = true; upload(); } else { setSync('ok'); renderAll(); }
-      return;
+      return true;
     }
     cloudEmpty = false;
-    if (dirty && localAt > (remote.at || 0)){ upload(); return; }
+    if (dirty && localAt > (remote.at || 0)){ upload(); return true; }
     adopt(remote);
     setSync('ok'); renderNotice();
-  } catch (e){ failState(); }
+    return true;
+  } catch (e){ failState(); return false; }
 }
 $('sync').addEventListener('click', () => { if ($('sync').dataset.s === 'error' || $('sync').dataset.s === 'offline') dirty ? upload() : pull(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
@@ -500,12 +518,12 @@ $('toastUndo').addEventListener('click', () => { if (undoFn){ undoFn(); undoFn =
 function toggle(a){
   if (readonly) return;
   const e = byA.get(a), was = state.done.has(a);
-  const before = { done: new Set(state.done), last: state.last };
-  if (was) state.done.delete(a); else { state.done.add(a); justN = a; }
+  const before = { done: new Set(state.done), eps: new Set(state.eps), last: state.last };
+  if (was){ state.done.delete(a); epsOf(e).forEach(k => state.eps.delete(k)); } else { state.done.add(a); justN = a; }
   persist(); renderAll();
   const nx = current();
   toast(was ? `已取消：${e.t}` : `已结案：${e.t}${nx ? ' · 下一篇 ' + nx.t : ''}`, () => {
-    state.done = before.done; state.last = before.last; persist(); renderAll();
+    state.done = before.done; state.eps = before.eps; state.last = before.last; persist(); renderAll();
   });
 }
 
@@ -534,6 +552,52 @@ $('locate').addEventListener('click', () => {
   window.scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 });
+
+// ---- B站 sync: only inside the Mac app. The app signs in to B站 and reads your watch history itself;
+// this page only receives {epid, progress, duration, viewAt} records and never sees the login. ----
+const IN_APP = !!window.__biliApp;
+const EP_BY_ID = new Map(); for (const k in EP) if (EP[k][0]) EP_BY_ID.set(EP[k][0], +k);
+const entryOfEp = k => E.find(e => k >= e.a && k <= e.b);
+function biliPost(msg){ try { window.webkit.messageHandlers.bili.postMessage(msg); } catch (e){} }
+const bili = { s: 'syncing', at: 0, newly: 0, msg: '' };
+function renderBili(){
+  const el = $('bili'); if (!IN_APP){ el.hidden = true; return; }
+  el.hidden = false; el.dataset.s = bili.s;
+  const p = x => String(x).padStart(2, '0'), t = bili.at ? new Date(bili.at) : null;
+  const when = t ? `${p(t.getHours())}:${p(t.getMinutes())}` : '';
+  el.innerHTML = {
+    syncing: '<span class="dot"></span><span>正在读取B站观看记录…</span>',
+    ok: `<span class="dot"></span><span>B站同步：<b>${when}</b> 已同步${bili.newly ? ` · 新看完 <b>${bili.newly}</b> 篇` : ''}</span><button type="button" data-bili="sync">立即同步</button>`,
+    loggedOut: '<span class="dot"></span><span>B站未登录，登录后会自动按你在B站的观看记录打勾</span><button type="button" data-bili="login">登录B站</button>',
+    error: `<span class="dot"></span><span>B站同步失败：${esc(bili.msg || '请稍后再试')}</span><button type="button" data-bili="sync">重试</button>`
+  }[bili.s] || '';
+}
+window.biliStatus = s => { Object.assign(bili, s); renderBili(); };
+window.applyBiliHistory = async items => {
+  if (!(await pull())){ window.biliStatus({ s: 'error', msg: '云端进度读取失败' }); return; }
+  let changed = false, latest = null, maxView = 0;
+  for (const it of items){
+    maxView = Math.max(maxView, it.viewAt || 0);
+    const k = EP_BY_ID.get(it.epid); if (!k) continue;          // not an episode of this list
+    const finished = it.progress === -1 || (it.duration > 0 && it.progress >= it.duration * 0.9);
+    if (finished && !state.eps.has(k)){ state.eps.add(k); changed = true; }
+    if (!latest || it.viewAt > latest.viewAt) latest = Object.assign({ k, finished }, it);
+  }
+  const newly = [];
+  for (const e of E){
+    if (!state.done.has(e.a) && epsOf(e).every(k => state.eps.has(k))){ state.done.add(e.a); newly.push(e); changed = true; }
+  }
+  if (latest && (!state.last || latest.viewAt * 1000 > (state.last.at || 0))){
+    const e = entryOfEp(latest.k);
+    if (e){ state.last = { a: e.a, ep: latest.k, at: latest.viewAt * 1000, pos: latest.finished ? 0 : latest.progress }; changed = true; }
+  }
+  if (changed){ if (newly.length) justN = newly[newly.length - 1].a; persist(); renderAll(); }
+  if (newly.length) toast(`B站同步：新看完 ${newly.length} 篇 · ${newly.map(e => e.t).join('、')}`);
+  window.biliStatus({ s: 'ok', at: Date.now(), newly: newly.length });
+  biliPost('applied:' + maxView);
+};
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-bili]'); if (b) biliPost(b.dataset.bili); });
+renderBili();
 
 $('sub').textContent = `名侦探柯南（中配）精选 ${E.length} 篇 · ${TOTAL_EPS} 集 · 真相只有一个`;
 renderAll();
